@@ -25,6 +25,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -41,13 +43,14 @@ import javax.swing.border.Border;
 import marytts.exceptions.MaryConfigurationException;
 import raging.goblin.speechless.Messages;
 import raging.goblin.speechless.speech.Speeker;
+import raging.goblin.speechless.speech.Speeker.EndOfSpeechListener;
 
-public class ClientWindow extends JFrame {
+public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
    private static final Messages MESSAGES = Messages.getInstance();
 
    private Speeker speeker;
-   private boolean parsing = false;
+   private int lastOfferedToSpeek;
 
    private JTextField typingField;
    private JTextArea speakingArea;
@@ -61,6 +64,7 @@ public class ClientWindow extends JFrame {
       initGui();
       setTitle(MESSAGES.get("client_window_title"));
       speeker = new Speeker();
+      speeker.addEndOfSpeechListener(this);
    }
 
    public void setFocusOnTextField() {
@@ -89,7 +93,8 @@ public class ClientWindow extends JFrame {
          @Override
          public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-               speeker.speek(typingField.getText());
+               speeker.speek(Arrays.asList(typingField.getText()));
+               lastOfferedToSpeek = -1;
                speakingArea.setText(speakingArea.getText() + "\n" + typingField.getText());
                speakingArea.setCaretPosition(speakingArea.getText().length());
                typingField.setText("");
@@ -113,23 +118,24 @@ public class ClientWindow extends JFrame {
 
          @Override
          public void actionPerformed(ActionEvent e) {
-            toggleParsing();
-            for (String speech : speakingArea.getText().split("\n")) {
-               if (!speech.isEmpty()) {
-                  speeker.speek(speakingArea.getText());
+            setParsing(true);
+            lastOfferedToSpeek = -1;
+            List<String> speeches = Arrays.asList(speakingArea.getText().split("\n"));
+            for (int i = 0; i < speeches.size(); i++) {
+               if (!speeches.get(i).trim().isEmpty()) {
+                  lastOfferedToSpeek++;
                }
             }
+            speeker.speek(speeches);
          }
       });
       parseTextButtonPanel.add(playButton, BorderLayout.EAST);
 
       stopButton = new JButton(getIcon("/icons/control_stop.png"));
       stopButton.setToolTipText(MESSAGES.get("stop_tooltip"));
-
    }
 
-   private void toggleParsing() {
-      parsing = !parsing;
+   private void setParsing(boolean parsing) {
       typingField.setEnabled(!parsing);
       speakingArea.setEnabled(!parsing);
       saveButton.setEnabled(!parsing);
@@ -146,5 +152,12 @@ public class ClientWindow extends JFrame {
 
    private static ImageIcon getIcon(String resource) {
       return new ImageIcon(ClientWindow.class.getResource(resource));
+   }
+
+   @Override
+   public void endOfSpeech(int speechIndex) {
+      if (lastOfferedToSpeek == speechIndex) {
+         setParsing(false);
+      }
    }
 }

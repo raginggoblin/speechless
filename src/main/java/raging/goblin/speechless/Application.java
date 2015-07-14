@@ -44,7 +44,7 @@ public class Application {
 
       SplashScreen splashScreen = new SplashScreen();
       ScreenPositioner.centerOnScreen(splashScreen);
-      splashScreen.setVisible(true);
+      splashScreen.setVisible(PROPERTIES.isSplashScreenEnabled());
 
       try {
          ClientWindow clientWindow = new ClientWindow();
