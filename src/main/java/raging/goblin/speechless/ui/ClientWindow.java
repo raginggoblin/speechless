@@ -21,10 +21,14 @@ package raging.goblin.speechless.ui;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,30 +42,38 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.Timer;
 import javax.swing.border.Border;
 
 import marytts.exceptions.MaryConfigurationException;
+
+import org.apache.log4j.Logger;
+
 import raging.goblin.speechless.Messages;
+import raging.goblin.speechless.SpeechLessProperties;
 import raging.goblin.speechless.speech.Speeker;
 import raging.goblin.speechless.speech.Speeker.EndOfSpeechListener;
 
 public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
    private static final Messages MESSAGES = Messages.getInstance();
+   private static final SpeechLessProperties PROPERTIES = SpeechLessProperties.getInstance();
+   private static final Logger LOG = Logger.getLogger(ClientWindow.class);
 
    private Speeker speeker;
    private int lastOfferedToSpeek;
+   private Timer clickTimer;
 
    private JTextField typingField;
    private JTextArea speakingArea;
    private JButton saveButton;
    private JButton playButton;
    private JButton stopButton;
-
    private JPanel parseTextButtonPanel;
 
    public ClientWindow() throws MaryConfigurationException {
       initGui();
+      loadSystray();
       setTitle(MESSAGES.get("client_window_title"));
       speeker = new Speeker();
       speeker.addEndOfSpeechListener(this);
@@ -69,6 +81,13 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
    public void setFocusOnTextField() {
       typingField.grabFocus();
+   }
+
+   @Override
+   public void endOfSpeech(int speechIndex) {
+      if (lastOfferedToSpeek == speechIndex) {
+         setParsing(false);
+      }
    }
 
    private void initGui() {
@@ -133,6 +152,14 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
       stopButton = new JButton(getIcon("/icons/control_stop.png"));
       stopButton.setToolTipText(MESSAGES.get("stop_tooltip"));
+      stopButton.addActionListener(new ActionListener() {
+
+         @Override
+         public void actionPerformed(ActionEvent e) {
+            speeker.stopSpeeking();
+            setParsing(false);
+         }
+      });
    }
 
    private void setParsing(boolean parsing) {
@@ -154,10 +181,69 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       return new ImageIcon(ClientWindow.class.getResource(resource));
    }
 
-   @Override
-   public void endOfSpeech(int speechIndex) {
-      if (lastOfferedToSpeek == speechIndex) {
-         setParsing(false);
+   private void loadSystray() {
+      if (SystemTray.isSupported() && PROPERTIES.isSystrayEnabled()) {
+         try {
+            SystemTray tray = SystemTray.getSystemTray();
+            TrayIcon trayIcon = new TrayIcon(new ImageIcon(getClass().getResource("/icons/sound.png")).getImage());
+            trayIcon.setImageAutoSize(true);
+            trayIcon.addMouseListener(new TrayIconMouseListener());
+            tray.add(trayIcon);
+         } catch (Exception e) {
+            LOG.warn("TrayIcon could not be added.");
+            LOG.debug("TrayIcon could not be added.", e);
+            setVisible(true);
+         }
+      } else {
+         setVisible(true);
+      }
+   }
+
+   private class TrayIconMouseListener implements MouseListener {
+
+      @Override
+      public void mouseClicked(MouseEvent e) {
+         // Left button
+         if (e.getButton() != MouseEvent.BUTTON3) {
+            if (e.getClickCount() == 1) {
+               // Single click - toggle visibility of sticky notes
+               clickTimer = new Timer(PROPERTIES.getDoubleClickDelay(), new ActionListener() {
+
+                  @Override
+                  public void actionPerformed(ActionEvent e) {
+                     setVisible(!isVisible());
+                  }
+               });
+               clickTimer.setRepeats(false);
+               clickTimer.start();
+            } else if (e.getClickCount() >= 2) {
+               // Double click - show/hide gui
+               clickTimer.stop();
+               setVisible(!isVisible());
+            }
+         }
+      }
+
+      @Override
+      public void mouseEntered(MouseEvent e) {
+         // Nothing to do
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+         // Nothing to do
+      }
+
+      @Override
+      public void mousePressed(MouseEvent e) {
+         if (e.getButton() == MouseEvent.BUTTON3) {
+            // Right button
+         }
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+         // Nothing to do
       }
    }
 }

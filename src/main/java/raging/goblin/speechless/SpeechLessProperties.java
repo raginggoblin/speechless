@@ -28,13 +28,17 @@ public class SpeechLessProperties {
    private static final String DEFAULT_NATIVE_HOOK_KEY_CODES = "29,42,49";
 
    public static final boolean DEFAULT_SPLASH_SCREEN_ENABLED = true;
+   public static final boolean DEFAULT_SYSTRAY_ENABLED = true;
    public static final String DEFAULT_VOICE = "dfki-obadiah-hsmm";
+   public static final int DEFAULT_DOUBLE_CLICK_DELAY = 250;
 
    private static final String KEY_LANGUAGE = "language";
    private static final String KEY_COUNTRY = "country";
    private static final String KEY_NATIVE_HOOK_KEY_CODES = "nativehookkeycodes";
    private static final String KEY_SPLASH_SCREEN_ENABLED = "nativehookkeycodes";
+   private static final String KEY_SYSTRAY_ENABLED = "systrayenabled";
    private static final String KEY_VOICE = "voice";
+   private static final String KEY_DOUBLE_CLICK_DELAY = "doubleclickdelay";
 
    private static SpeechLessProperties instance;
    private boolean nativeHookEnabled = true;
@@ -78,6 +82,14 @@ public class SpeechLessProperties {
       return userPreferences.getBoolean(KEY_SPLASH_SCREEN_ENABLED, DEFAULT_SPLASH_SCREEN_ENABLED);
    }
 
+   public void setSystrayEnabled(boolean systrayEnabled) {
+      userPreferences.putBoolean(KEY_SYSTRAY_ENABLED, systrayEnabled);
+   }
+
+   public boolean isSystrayEnabled() {
+      return userPreferences.getBoolean(KEY_SYSTRAY_ENABLED, DEFAULT_SYSTRAY_ENABLED);
+   }
+
    public boolean isNativeHookEnabled() {
       return nativeHookEnabled;
    }
@@ -110,5 +122,13 @@ public class SpeechLessProperties {
 
    public void setVoice(String voice) {
       userPreferences.put(KEY_VOICE, voice);
+   }
+
+   public int getDoubleClickDelay() {
+      return userPreferences.getInt(KEY_DOUBLE_CLICK_DELAY, DEFAULT_DOUBLE_CLICK_DELAY);
+   }
+
+   public void setDoubleClickDelay(int doubleClickDelay) {
+      userPreferences.putInt(KEY_DOUBLE_CLICK_DELAY, doubleClickDelay);
    }
 }
