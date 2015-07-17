@@ -25,9 +25,12 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import org.apache.log4j.Logger;
-
 import marytts.exceptions.MaryConfigurationException;
+
+import org.apache.log4j.Logger;
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.NativeHookException;
+
 import raging.goblin.speechless.ui.ClientWindow;
 import raging.goblin.speechless.ui.ScreenPositioner;
 import raging.goblin.speechless.ui.SplashScreen;
@@ -42,17 +45,16 @@ public class Application {
       loadLaf();
       setLocale();
 
+      Runtime.getRuntime().addShutdownHook(new ShutdownHook());
+
       SplashScreen splashScreen = new SplashScreen();
       ScreenPositioner.centerOnScreen(splashScreen);
       splashScreen.setVisible(PROPERTIES.isSplashScreenEnabled());
 
       try {
-         ClientWindow clientWindow = new ClientWindow();
-         ScreenPositioner.centerOnScreen(clientWindow);
+         new ClientWindow();
          splashScreen.setVisible(false);
          splashScreen.dispose();
-         clientWindow.setVisible(true);
-         clientWindow.setFocusOnTextField();
       } catch (MaryConfigurationException e) {
          LOG.error("Unable to start Speeker", e);
          splashScreen.setMessage(MESSAGES.get("initialization_error"));
@@ -90,6 +92,18 @@ public class Application {
             UIManager.setLookAndFeel(info.getClassName());
             LOG.debug("Setting Nimbus look and feel");
             break;
+         }
+      }
+   }
+
+   private static class ShutdownHook extends Thread {
+
+      @Override
+      public void run() {
+         try {
+            GlobalScreen.unregisterNativeHook();
+         } catch (NativeHookException ex) {
+            LOG.warn("Unable to unregister native hook");
          }
       }
    }

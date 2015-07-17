@@ -30,7 +30,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -42,12 +45,17 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 
 import marytts.exceptions.MaryConfigurationException;
 
 import org.apache.log4j.Logger;
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.NativeHookException;
+import org.jnativehook.keyboard.NativeKeyEvent;
+import org.jnativehook.keyboard.NativeKeyListener;
 
 import raging.goblin.speechless.Messages;
 import raging.goblin.speechless.SpeechLessProperties;
@@ -73,14 +81,14 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
    public ClientWindow() throws MaryConfigurationException {
       initGui();
-      loadSystray();
+      if (SystemTray.isSupported() && PROPERTIES.isSystrayEnabled()) {
+         loadSystray();
+         initNativeHook();
+      }
       setTitle(MESSAGES.get("client_window_title"));
       speeker = new Speeker();
       speeker.addEndOfSpeechListener(this);
-   }
-
-   public void setFocusOnTextField() {
-      typingField.grabFocus();
+      setVisible(PROPERTIES.isSystrayEnabled());
    }
 
    @Override
@@ -90,9 +98,16 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       }
    }
 
+   @Override
+   public void setVisible(boolean visible) {
+      super.setVisible(visible);
+      typingField.grabFocus();
+   }
+
    private void initGui() {
       setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       setSize(600, 400);
+      ScreenPositioner.centerOnScreen(this);
       BorderLayout layout = new BorderLayout(10, 10);
       getContentPane().setLayout(layout);
       Border padding = BorderFactory.createEmptyBorder(10, 10, 10, 10);
@@ -162,6 +177,49 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       });
    }
 
+   private void initNativeHook() {
+      try {
+         java.util.logging.Logger logger = java.util.logging.Logger
+               .getLogger(GlobalScreen.class.getPackage().getName());
+         logger.setLevel(Level.OFF);
+         GlobalScreen.registerNativeHook();
+         GlobalScreen.addNativeKeyListener(new NativeKeyListener() {
+
+            private Set<Integer> pressedKeyCodes = new HashSet<>();
+
+            @Override
+            public void nativeKeyTyped(NativeKeyEvent e) {
+               // Nothing todo
+            }
+
+            @Override
+            public void nativeKeyReleased(NativeKeyEvent e) {
+               pressedKeyCodes.clear();
+            }
+
+            @Override
+            public void nativeKeyPressed(NativeKeyEvent e) {
+               if (Arrays.stream(PROPERTIES.getNativeHookKeyCodes()).anyMatch(new Integer(e.getKeyCode())::equals)) {
+                  pressedKeyCodes.add(e.getKeyCode());
+               }
+               if (pressedKeyCodes.size() == 3) {
+                  pressedKeyCodes.clear();
+                  SwingUtilities.invokeLater(new Runnable() {
+
+                     @Override
+                     public void run() {
+                        setVisible(!isVisible());
+                     }
+                  });
+               }
+            }
+         });
+      } catch (NativeHookException ex) {
+         LOG.warn("Unable to use native hook, disabling it");
+         PROPERTIES.setNativeHookEnabled(false);
+      }
+   }
+
    private void setParsing(boolean parsing) {
       typingField.setEnabled(!parsing);
       speakingArea.setEnabled(!parsing);
@@ -182,20 +240,16 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
    }
 
    private void loadSystray() {
-      if (SystemTray.isSupported() && PROPERTIES.isSystrayEnabled()) {
-         try {
-            SystemTray tray = SystemTray.getSystemTray();
-            TrayIcon trayIcon = new TrayIcon(new ImageIcon(getClass().getResource("/icons/sound.png")).getImage());
-            trayIcon.setImageAutoSize(true);
-            trayIcon.addMouseListener(new TrayIconMouseListener());
-            tray.add(trayIcon);
-         } catch (Exception e) {
-            LOG.warn("TrayIcon could not be added.");
-            LOG.debug("TrayIcon could not be added.", e);
-            setVisible(true);
-         }
-      } else {
-         setVisible(true);
+      try {
+         SystemTray tray = SystemTray.getSystemTray();
+         TrayIcon trayIcon = new TrayIcon(new ImageIcon(getClass().getResource("/icons/sound.png")).getImage());
+         trayIcon.setImageAutoSize(true);
+         trayIcon.addMouseListener(new TrayIconMouseListener());
+         tray.add(trayIcon);
+      } catch (Exception e) {
+         LOG.warn("TrayIcon could not be added.");
+         LOG.debug("TrayIcon could not be added.", e);
+         PROPERTIES.setSystrayEnabled(false);
       }
    }
 
