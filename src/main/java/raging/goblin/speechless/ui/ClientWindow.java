@@ -57,10 +57,12 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
+import javax.swing.text.JTextComponent;
 
 import marytts.exceptions.MaryConfigurationException;
 
@@ -85,7 +87,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
    private int lastOfferedToSpeek;
    private Timer clickTimer;
 
-   private JTextArea typingField;
+   private JTextField typingField;
    private JTextArea speakingArea;
    private JButton saveButton;
    private JButton playButton;
@@ -134,8 +136,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       getContentPane().add(speakingPane, BorderLayout.CENTER);
       new EditAdapter(speakingArea);
 
-      typingField = new JTextArea();
-      typingField.setRows(1);
+      typingField = new JTextField();
       getContentPane().add(typingField, BorderLayout.SOUTH);
       typingField.addKeyListener(new KeyAdapter() {
 
@@ -332,10 +333,10 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
    private class EditAdapter extends MouseAdapter implements FocusListener {
 
-      private JTextArea parent;
+      private JTextComponent parent;
       private JPopupMenu menu;
 
-      public EditAdapter(JTextArea parent) {
+      public EditAdapter(JTextComponent parent) {
          this.parent = parent;
          parent.addMouseListener(this);
          parent.addFocusListener(this);
@@ -364,7 +365,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
             public void actionPerformed(ActionEvent e) {
                StringSelection selection = new StringSelection(parent.getSelectedText());
                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
-               parent.replaceRange("", parent.getSelectionStart(), parent.getSelectionEnd());
+               parent.replaceSelection("");
                menu.setVisible(false);
             }
          });
@@ -389,7 +390,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
                if (clipboardContents != null && clipboardContents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                   try {
                      String pasted = (String) clipboardContents.getTransferData(DataFlavor.stringFlavor);
-                     parent.replaceRange(pasted, parent.getSelectionStart(), parent.getSelectionEnd());
+                     parent.replaceSelection(pasted);
                   } catch (UnsupportedFlavorException | IOException ex) {
                      LOG.error("Unable to paste content", ex);
                   }
@@ -404,7 +405,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
          deleteItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-               parent.replaceRange("", parent.getSelectionStart(), parent.getSelectionEnd());
+               parent.replaceSelection("");
                menu.setVisible(false);
             }
          });
