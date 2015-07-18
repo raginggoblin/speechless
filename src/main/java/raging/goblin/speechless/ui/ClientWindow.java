@@ -23,14 +23,23 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.SystemTray;
+import java.awt.Toolkit;
 import java.awt.TrayIcon;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -43,10 +52,11 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -75,7 +85,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
    private int lastOfferedToSpeek;
    private Timer clickTimer;
 
-   private JTextField typingField;
+   private JTextArea typingField;
    private JTextArea speakingArea;
    private JButton saveButton;
    private JButton playButton;
@@ -122,8 +132,10 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       JScrollPane speakingPane = new JScrollPane(speakingArea);
       speakingPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
       getContentPane().add(speakingPane, BorderLayout.CENTER);
+      new EditAdapter(speakingArea);
 
-      typingField = new JTextField();
+      typingField = new JTextArea();
+      typingField.setRows(1);
       getContentPane().add(typingField, BorderLayout.SOUTH);
       typingField.addKeyListener(new KeyAdapter() {
 
@@ -139,6 +151,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
             }
          }
       });
+      new EditAdapter(typingField);
 
       GridLayout buttonLayout = new GridLayout(2, 0);
       buttonLayout.setVgap(20);
@@ -314,6 +327,113 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       @Override
       public void mouseReleased(MouseEvent e) {
          // Nothing to do
+      }
+   }
+
+   private class EditAdapter extends MouseAdapter implements FocusListener {
+
+      private JTextArea parent;
+      private JPopupMenu menu;
+
+      public EditAdapter(JTextArea parent) {
+         this.parent = parent;
+         parent.addMouseListener(this);
+         parent.addFocusListener(this);
+         menu = createEditMenu();
+      }
+
+      @Override
+      public void mouseClicked(MouseEvent e) {
+         parent.requestFocus();
+
+         // Left button
+         if (e.getButton() == MouseEvent.BUTTON3) {
+            menu.setLocation(e.getXOnScreen() + 1, e.getYOnScreen() + 1);
+            menu.setVisible(true);
+         } else {
+            menu.setVisible(false);
+         }
+      }
+
+      private JPopupMenu createEditMenu() {
+         final JPopupMenu menu = new JPopupMenu(MESSAGES.get("edit"));
+
+         final JMenuItem cutItem = new JMenuItem(MESSAGES.get("cut"), getIcon("/icons/cut.png"));
+         cutItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               StringSelection selection = new StringSelection(parent.getSelectedText());
+               Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
+               parent.replaceRange("", parent.getSelectionStart(), parent.getSelectionEnd());
+               menu.setVisible(false);
+            }
+         });
+         menu.add(cutItem);
+
+         JMenuItem copyItem = new JMenuItem(MESSAGES.get("copy"), getIcon("/icons/page_copy.png"));
+         copyItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               StringSelection selection = new StringSelection(parent.getSelectedText());
+               Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
+               menu.setVisible(false);
+            }
+         });
+         menu.add(copyItem);
+
+         JMenuItem pasteItem = new JMenuItem(MESSAGES.get("paste"), getIcon("/icons/paste_plain.png"));
+         pasteItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               Transferable clipboardContents = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+               if (clipboardContents != null && clipboardContents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                  try {
+                     String pasted = (String) clipboardContents.getTransferData(DataFlavor.stringFlavor);
+                     parent.replaceRange(pasted, parent.getSelectionStart(), parent.getSelectionEnd());
+                  } catch (UnsupportedFlavorException | IOException ex) {
+                     LOG.error("Unable to paste content", ex);
+                  }
+               }
+
+               menu.setVisible(false);
+            }
+         });
+         menu.add(pasteItem);
+
+         JMenuItem deleteItem = new JMenuItem(MESSAGES.get("delete"), getIcon("/icons/page_white_delete.png"));
+         deleteItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               parent.replaceRange("", parent.getSelectionStart(), parent.getSelectionEnd());
+               menu.setVisible(false);
+            }
+         });
+         menu.add(deleteItem);
+
+         menu.addSeparator();
+
+         JMenuItem selectAllItem = new JMenuItem(MESSAGES.get("select_all"), getIcon("/icons/accept.png"));
+         selectAllItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               parent.setSelectionStart(0);
+               parent.setSelectionEnd(parent.getText().length());
+               menu.setVisible(false);
+            }
+         });
+         menu.add(selectAllItem);
+
+         return menu;
+      }
+
+      @Override
+      public void focusGained(FocusEvent e) {
+         // nothing todo
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+         menu.setVisible(false);
       }
    }
 }
