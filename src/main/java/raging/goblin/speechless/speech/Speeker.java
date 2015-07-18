@@ -61,10 +61,11 @@ public class Speeker {
             int speechId = -1;
             for (String speech : speeches) {
                if (!speech.trim().isEmpty()) {
+                  speechId++;
                   try {
                      AudioInputStream audio = marytts.generateAudio(speech.toLowerCase());
                      AudioPlayer player = new AudioPlayer(audio);
-                     speechesQueue.offer(new Pair<>(player, ++speechId));
+                     speechesQueue.offer(new Pair<>(player, speechId));
                      LOG.debug("Preparing to speek: " + speech);
                   } catch (SynthesisException e) {
                      LOG.error("Unable to speek: " + speech, e);
