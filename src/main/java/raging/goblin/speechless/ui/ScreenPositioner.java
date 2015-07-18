@@ -25,18 +25,18 @@ import java.awt.Window;
 
 public final class ScreenPositioner {
 
-	private ScreenPositioner() {
-		// Utilitiy class
-	}
+   private ScreenPositioner() {
+      // Utilitiy class
+   }
 
-	public static void centerOnScreen(Window window) {
-		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		Dimension resolution = toolkit.getScreenSize();
+   public static void centerOnScreen(Window window) {
+      Toolkit toolkit = Toolkit.getDefaultToolkit();
+      Dimension resolution = toolkit.getScreenSize();
 
-		int x = (int) (resolution.getWidth() / 2 - window.getWidth() / 2);
-		int y = (int) (resolution.getHeight() / 2 - window.getHeight() / 2);
+      int x = (int) (resolution.getWidth() / 2 - window.getWidth() / 2);
+      int y = (int) (resolution.getHeight() / 2 - window.getHeight() / 2);
 
-		window.setLocation(x, y);
-	}
+      window.setLocation(x, y);
+   }
 
 }

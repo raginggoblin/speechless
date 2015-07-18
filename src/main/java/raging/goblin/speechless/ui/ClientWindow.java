@@ -20,6 +20,7 @@
 package raging.goblin.speechless.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
@@ -29,6 +30,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +41,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -79,15 +82,15 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
    private JButton stopButton;
    private JPanel parseTextButtonPanel;
 
-   public ClientWindow() throws MaryConfigurationException {
+   public ClientWindow(Speeker speeker) throws MaryConfigurationException {
+      this.speeker = speeker;
+      speeker.addEndOfSpeechListener(this);
       initGui();
       if (SystemTray.isSupported() && PROPERTIES.isSystrayEnabled()) {
          loadSystray();
          initNativeHook();
       }
       setTitle(MESSAGES.get("client_window_title"));
-      speeker = new Speeker();
-      speeker.addEndOfSpeechListener(this);
       setVisible(PROPERTIES.isSystrayEnabled());
    }
 
@@ -138,12 +141,25 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       });
 
       GridLayout buttonLayout = new GridLayout(2, 0);
-      buttonLayout.setVgap(10);
+      buttonLayout.setVgap(20);
       parseTextButtonPanel = new JPanel(buttonLayout);
+      parseTextButtonPanel.setPreferredSize(new Dimension(50, 50));
       getContentPane().add(parseTextButtonPanel, BorderLayout.EAST);
 
       saveButton = new JButton(getIcon("/icons/save.png"));
       saveButton.setToolTipText(MESSAGES.get("save_tooltip"));
+      saveButton.addActionListener(new ActionListener() {
+
+         @Override
+         public void actionPerformed(ActionEvent e) {
+            JFileChooser chooser = new JFileChooser();
+            int returnValue = chooser.showOpenDialog(ClientWindow.this);
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+               File file = chooser.getSelectedFile();
+               speeker.save(speakingArea.getText(), file);
+            }
+         }
+      });
       parseTextButtonPanel.add(saveButton, BorderLayout.EAST);
 
       playButton = new JButton(getIcon("/icons/control_play.png"));

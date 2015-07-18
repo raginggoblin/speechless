@@ -25,12 +25,14 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import lombok.AllArgsConstructor;
 import marytts.exceptions.MaryConfigurationException;
 
 import org.apache.log4j.Logger;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 
+import raging.goblin.speechless.speech.Speeker;
 import raging.goblin.speechless.ui.ClientWindow;
 import raging.goblin.speechless.ui.ScreenPositioner;
 import raging.goblin.speechless.ui.SplashScreen;
@@ -45,14 +47,14 @@ public class Application {
       loadLaf();
       setLocale();
 
-      Runtime.getRuntime().addShutdownHook(new ShutdownHook());
-
       SplashScreen splashScreen = new SplashScreen();
       ScreenPositioner.centerOnScreen(splashScreen);
       splashScreen.setVisible(PROPERTIES.isSplashScreenEnabled());
 
       try {
-         new ClientWindow();
+         Speeker speeker = new Speeker();
+         Runtime.getRuntime().addShutdownHook(new ShutdownHook(speeker));
+         new ClientWindow(speeker);
          splashScreen.setVisible(false);
          splashScreen.dispose();
       } catch (MaryConfigurationException e) {
@@ -96,11 +98,15 @@ public class Application {
       }
    }
 
+   @AllArgsConstructor
    private static class ShutdownHook extends Thread {
+
+      private Speeker speeker;
 
       @Override
       public void run() {
          try {
+            speeker.stop();
             GlobalScreen.unregisterNativeHook();
          } catch (NativeHookException ex) {
             LOG.warn("Unable to unregister native hook");

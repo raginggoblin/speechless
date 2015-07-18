@@ -31,6 +31,7 @@ public class SpeechLessProperties {
    public static final boolean DEFAULT_SYSTRAY_ENABLED = true;
    public static final String DEFAULT_VOICE = "dfki-obadiah-hsmm";
    public static final int DEFAULT_DOUBLE_CLICK_DELAY = 250;
+   public static final int DEFAULT_TOAST_TIME = 3000;
 
    private static final String KEY_LANGUAGE = "language";
    private static final String KEY_COUNTRY = "country";
@@ -39,6 +40,7 @@ public class SpeechLessProperties {
    private static final String KEY_SYSTRAY_ENABLED = "systrayenabled";
    private static final String KEY_VOICE = "voice";
    private static final String KEY_DOUBLE_CLICK_DELAY = "doubleclickdelay";
+   private static final String KEY_TOAST_TIME = "toasttime";
 
    private static SpeechLessProperties instance;
    private boolean nativeHookEnabled = true;
@@ -130,5 +132,13 @@ public class SpeechLessProperties {
 
    public void setDoubleClickDelay(int doubleClickDelay) {
       userPreferences.putInt(KEY_DOUBLE_CLICK_DELAY, doubleClickDelay);
+   }
+
+   public int getToastTime() {
+      return userPreferences.getInt(KEY_TOAST_TIME, DEFAULT_TOAST_TIME);
+   }
+
+   public void setToastTime(int toastTime) {
+      userPreferences.putInt(KEY_TOAST_TIME, toastTime);
    }
 }

@@ -1,12 +1,16 @@
 package raging.goblin.speechless.speech;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
 
 import marytts.LocalMaryInterface;
 import marytts.MaryInterface;
@@ -17,12 +21,15 @@ import marytts.util.data.audio.AudioPlayer;
 
 import org.apache.log4j.Logger;
 
+import raging.goblin.speechless.Messages;
 import raging.goblin.speechless.SpeechLessProperties;
+import raging.goblin.speechless.ui.ToastWindow;
 
 public class Speeker {
 
    private static final Logger LOG = Logger.getLogger(Speeker.class);
    private static final SpeechLessProperties PROPERTIES = SpeechLessProperties.getInstance();
+   private static final Messages MESSAGES = Messages.getInstance();
 
    private BlockingQueue<Pair<AudioPlayer, Integer>> speechesQueue = new ArrayBlockingQueue<>(100);
    private Pair<AudioPlayer, Integer> currentlySpeeking;
@@ -47,7 +54,7 @@ public class Speeker {
    }
 
    public void speek(List<String> speeches) {
-      new Thread("Offering speeches thread") {
+      new Thread("Offering speeches") {
 
          @Override
          public void run() {
@@ -55,16 +62,37 @@ public class Speeker {
             for (String speech : speeches) {
                if (!speech.trim().isEmpty()) {
                   try {
-                     AudioInputStream audio = marytts.generateAudio(speech);
+                     AudioInputStream audio = marytts.generateAudio(speech.toLowerCase());
                      AudioPlayer player = new AudioPlayer(audio);
                      speechesQueue.offer(new Pair<>(player, ++speechId));
                      LOG.debug("Preparing to speek: " + speech);
                   } catch (SynthesisException e) {
-                     LOG.error("Unable to speek", e);
+                     LOG.error("Unable to speek: " + speech, e);
                   }
                }
             }
          };
+      }.start();
+   }
+
+   public void save(String speech, File file) {
+      new Thread("Saving speeches") {
+
+         @Override
+         public void run() {
+            if (!speech.trim().isEmpty()) {
+               try {
+                  ToastWindow toast = ToastWindow.showToast(MESSAGES.get("saving"), false);
+                  AudioInputStream audio = marytts.generateAudio(speech.toLowerCase());
+                  AudioSystem.write(audio, AudioFileFormat.Type.WAVE, file);
+                  toast.setVisible(false);
+                  toast.dispose();
+                  ToastWindow.showToast(MESSAGES.get("ready_saving"), true);
+               } catch (SynthesisException | IOException e) {
+                  LOG.error("Unable to save speech", e);
+               }
+            }
+         }
       }.start();
    }
 
