@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -57,7 +59,9 @@ public class Voice {
    };
 
    private static final Logger LOG = Logger.getLogger(Voice.class);
-   private static final List<Voice> voices = new ArrayList<>();
+   private static final List<Voice> VOICES = new ArrayList<>();
+   private static final Preferences PREFERENCES = Preferences.userNodeForPackage(Voice.class);
+   private static final String DEFAULT_VOICE = "dfki-obadiah-hsmm";
 
    @Getter
    private String name;
@@ -68,10 +72,19 @@ public class Voice {
    private String country;
 
    public static List<Voice> getAllVoices() {
-      if (voices.isEmpty()) {
-         voices.addAll(readAllVoices());
+      if (VOICES.isEmpty()) {
+         VOICES.addAll(readAllVoices());
       }
-      return voices;
+      return VOICES;
+   }
+
+   public static Voice getSelectedVoice() {
+      String name = PREFERENCES.get("voice", DEFAULT_VOICE);
+      return getVoice(name);
+   }
+
+   public static Voice getDefaultVoice() {
+      return getVoice(DEFAULT_VOICE);
    }
 
    @Override
@@ -121,6 +134,15 @@ public class Voice {
          LOG.error("Not able to parse xml to voice, file: " + file.getAbsolutePath(), e);
       }
 
+      return null;
+   }
+
+   private static Voice getVoice(String name) {
+      try {
+         return getAllVoices().stream().filter(v -> v.getName().equals(name)).collect(Collectors.toList()).get(0);
+      } catch (IndexOutOfBoundsException e) {
+         LOG.error("No voices found");
+      }
       return null;
    }
 }
