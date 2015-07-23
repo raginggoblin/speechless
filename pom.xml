@@ -7,8 +7,8 @@
 	<version>0.1</version>
 	<packaging>jar</packaging>
 
-	<name>CalDavClient</name>
-	<url>https://raginggoblin.wordpress.com/speechless</url>
+	<name>SpeechLess</name>
+	<url>https://github.com/raginggoblin/speechless</url>
 
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
@@ -42,6 +42,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.6</version>
 				<configuration>
 					<archive>
 						<manifest>
