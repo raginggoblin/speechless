@@ -14,6 +14,6 @@ Install voices to local maven repo:
 Install libs to local maven repo:
 mvn install:install-file -DgroupId=org.jnativehook -DartifactId=jnativehook -Dversion=2.0.2 -Dpackaging=jar -Dfile=lib/jnativehook-2.0.2.jar
 
-Now use maven to build application.
-
-Lombok is used as well, follow instructions from https://projectlombok.org/ to setup IDE.
+Install lombok to local maven repo:
+mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get -Dartifact=org.projectlombok:lombok:1.16.4
+Follow instructions from https://projectlombok.org/ to setup IDE.
