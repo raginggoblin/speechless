@@ -15,5 +15,5 @@ Install libs to local maven repo:
 mvn install:install-file -DgroupId=org.jnativehook -DartifactId=jnativehook -Dversion=2.0.2 -Dpackaging=jar -Dfile=lib/jnativehook-2.0.2.jar
 
 Install lombok to local maven repo:
-mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get -Dartifact=org.projectlombok:lombok:1.16.4
+mvn org.apache.maven.plugins:maven-dependency-plugin:2.8:get -Dartifact=org.projectlombok:lombok:1.16.2
 Follow instructions from https://projectlombok.org/ to setup IDE.
