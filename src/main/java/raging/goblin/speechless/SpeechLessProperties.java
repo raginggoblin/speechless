@@ -29,7 +29,7 @@ public class SpeechLessProperties {
 
    public static final boolean DEFAULT_SPLASH_SCREEN_ENABLED = true;
    public static final boolean DEFAULT_SYSTRAY_ENABLED = true;
-   public static final String DEFAULT_VOICE = "dfki-obadiah-hsmm";
+   public static final String DEFAULT_VOICE = "DFKI_OBADIAH";
    public static final int DEFAULT_DOUBLE_CLICK_DELAY = 250;
    public static final int DEFAULT_TOAST_TIME = 3000;
 

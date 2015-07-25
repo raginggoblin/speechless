@@ -83,6 +83,10 @@ public class Voice {
       return getVoice(name);
    }
 
+   public static void setSelectedVoice(String voice) {
+      PREFERENCES.put("voice", voice);
+   }
+
    public static Voice getDefaultVoice() {
       return getVoice(DEFAULT_VOICE);
    }

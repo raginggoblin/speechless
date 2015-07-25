@@ -29,8 +29,6 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
@@ -52,7 +50,10 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -160,51 +161,74 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       parseTextButtonPanel.setPreferredSize(new Dimension(50, 50));
       getContentPane().add(parseTextButtonPanel, BorderLayout.EAST);
 
-      saveButton = new JButton(getIcon("/icons/save.png"));
+      saveButton = new JButton(Icon.getIcon("/icons/save.png"));
       saveButton.setToolTipText(MESSAGES.get("save_tooltip"));
-      saveButton.addActionListener(new ActionListener() {
-
-         @Override
-         public void actionPerformed(ActionEvent e) {
-            JFileChooser chooser = new JFileChooser();
-            int returnValue = chooser.showOpenDialog(ClientWindow.this);
-            if (returnValue == JFileChooser.APPROVE_OPTION) {
-               File file = chooser.getSelectedFile();
-               speeker.save(speakingArea.getText(), file);
-            }
+      saveButton.addActionListener(a -> {
+         JFileChooser chooser = new JFileChooser();
+         int returnValue = chooser.showOpenDialog(ClientWindow.this);
+         if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+            speeker.save(speakingArea.getText(), file);
          }
       });
       parseTextButtonPanel.add(saveButton, BorderLayout.EAST);
 
-      playButton = new JButton(getIcon("/icons/control_play.png"));
+      playButton = new JButton(Icon.getIcon("/icons/control_play.png"));
       playButton.setToolTipText(MESSAGES.get("play_tooltip"));
-      playButton.addActionListener(new ActionListener() {
-
-         @Override
-         public void actionPerformed(ActionEvent e) {
-            setParsing(true);
-            lastOfferedToSpeek = -1;
-            List<String> speeches = Arrays.asList(speakingArea.getText().split("\n"));
-            for (int i = 0; i < speeches.size(); i++) {
-               if (!speeches.get(i).trim().isEmpty()) {
-                  lastOfferedToSpeek++;
-               }
+      playButton.addActionListener(a -> {
+         setParsing(true);
+         lastOfferedToSpeek = -1;
+         List<String> speeches = Arrays.asList(speakingArea.getText().split("\n"));
+         for (int i = 0; i < speeches.size(); i++) {
+            if (!speeches.get(i).trim().isEmpty()) {
+               lastOfferedToSpeek++;
             }
-            speeker.speek(speeches);
          }
+         speeker.speek(speeches);
       });
       parseTextButtonPanel.add(playButton, BorderLayout.EAST);
 
-      stopButton = new JButton(getIcon("/icons/control_stop.png"));
+      stopButton = new JButton(Icon.getIcon("/icons/control_stop.png"));
       stopButton.setToolTipText(MESSAGES.get("stop_tooltip"));
-      stopButton.addActionListener(new ActionListener() {
+      stopButton.addActionListener(a -> {
+         speeker.stopSpeeking();
+         setParsing(false);
+      });
 
-         @Override
-         public void actionPerformed(ActionEvent e) {
-            speeker.stopSpeeking();
-            setParsing(false);
+      setJMenuBar(createMenu());
+   }
+
+   private JMenuBar createMenu() {
+      JMenuBar menuBar = new JMenuBar();
+
+      JMenu fileMenu = new JMenu(MESSAGES.get("file"));
+
+      menuBar.add(fileMenu);
+
+      JMenu editMenu = new JMenu(MESSAGES.get("edit"));
+
+      JMenuItem configureVoiceItem = new JMenuItem(MESSAGES.get("configure_voice"));
+      configureVoiceItem.addActionListener(a -> {
+         VoiceConfigurationDialog dialog = new VoiceConfigurationDialog(ClientWindow.this);
+         dialog.setVisible(true);
+         if (dialog.isOkPressed()) {
+            try {
+               speeker.initMaryTTS();
+            } catch (Exception e) {
+               JOptionPane.showMessageDialog(ClientWindow.this, MESSAGES.get("init_marytts_error"),
+                     MESSAGES.get("error"), JOptionPane.ERROR_MESSAGE);
+               LOG.error("Unable to reinitialize marytts", e);
+            }
          }
       });
+      editMenu.add(configureVoiceItem);
+
+      menuBar.add(editMenu);
+
+      JMenu helpMenu = new JMenu(MESSAGES.get("help"));
+      menuBar.add(helpMenu);
+
+      return menuBar;
    }
 
    private void initNativeHook() {
@@ -265,10 +289,6 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       }
    }
 
-   private static ImageIcon getIcon(String resource) {
-      return new ImageIcon(ClientWindow.class.getResource(resource));
-   }
-
    private void loadSystray() {
       try {
          SystemTray tray = SystemTray.getSystemTray();
@@ -291,13 +311,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
          if (e.getButton() != MouseEvent.BUTTON3) {
             if (e.getClickCount() == 1) {
                // Single click - toggle visibility of sticky notes
-               clickTimer = new Timer(PROPERTIES.getDoubleClickDelay(), new ActionListener() {
-
-                  @Override
-                  public void actionPerformed(ActionEvent e) {
-                     setVisible(!isVisible());
-                  }
-               });
+               clickTimer = new Timer(PROPERTIES.getDoubleClickDelay(), a -> setVisible(!isVisible()));
                clickTimer.setRepeats(false);
                clickTimer.start();
             } else if (e.getClickCount() >= 2) {
@@ -359,68 +373,53 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       private JPopupMenu createEditMenu() {
          final JPopupMenu menu = new JPopupMenu(MESSAGES.get("edit"));
 
-         final JMenuItem cutItem = new JMenuItem(MESSAGES.get("cut"), getIcon("/icons/cut.png"));
-         cutItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-               StringSelection selection = new StringSelection(parent.getSelectedText());
-               Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
-               parent.replaceSelection("");
-               menu.setVisible(false);
-            }
+         final JMenuItem cutItem = new JMenuItem(MESSAGES.get("cut"), Icon.getIcon("/icons/cut.png"));
+         cutItem.addActionListener(a -> {
+            StringSelection selection = new StringSelection(parent.getSelectedText());
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
+            parent.replaceSelection("");
+            menu.setVisible(false);
          });
          menu.add(cutItem);
 
-         JMenuItem copyItem = new JMenuItem(MESSAGES.get("copy"), getIcon("/icons/page_copy.png"));
-         copyItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-               StringSelection selection = new StringSelection(parent.getSelectedText());
-               Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
-               menu.setVisible(false);
-            }
+         JMenuItem copyItem = new JMenuItem(MESSAGES.get("copy"), Icon.getIcon("/icons/page_copy.png"));
+         copyItem.addActionListener(a -> {
+            StringSelection selection = new StringSelection(parent.getSelectedText());
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
+            menu.setVisible(false);
          });
          menu.add(copyItem);
 
-         JMenuItem pasteItem = new JMenuItem(MESSAGES.get("paste"), getIcon("/icons/paste_plain.png"));
-         pasteItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-               Transferable clipboardContents = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
-               if (clipboardContents != null && clipboardContents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                  try {
-                     String pasted = (String) clipboardContents.getTransferData(DataFlavor.stringFlavor);
-                     parent.replaceSelection(pasted);
-                  } catch (UnsupportedFlavorException | IOException ex) {
-                     LOG.error("Unable to paste content", ex);
-                  }
+         JMenuItem pasteItem = new JMenuItem(MESSAGES.get("paste"), Icon.getIcon("/icons/paste_plain.png"));
+         pasteItem.addActionListener(a -> {
+            Transferable clipboardContents = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+            if (clipboardContents != null && clipboardContents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+               try {
+                  String pasted = (String) clipboardContents.getTransferData(DataFlavor.stringFlavor);
+                  parent.replaceSelection(pasted);
+               } catch (UnsupportedFlavorException | IOException ex) {
+                  LOG.error("Unable to paste content", ex);
                }
-
-               menu.setVisible(false);
             }
+
+            menu.setVisible(false);
          });
          menu.add(pasteItem);
 
-         JMenuItem deleteItem = new JMenuItem(MESSAGES.get("delete"), getIcon("/icons/page_white_delete.png"));
-         deleteItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-               parent.replaceSelection("");
-               menu.setVisible(false);
-            }
+         JMenuItem deleteItem = new JMenuItem(MESSAGES.get("delete"), Icon.getIcon("/icons/page_white_delete.png"));
+         deleteItem.addActionListener(a -> {
+            parent.replaceSelection("");
+            menu.setVisible(false);
          });
          menu.add(deleteItem);
 
          menu.addSeparator();
 
-         JMenuItem selectAllItem = new JMenuItem(MESSAGES.get("select_all"), getIcon("/icons/accept.png"));
-         selectAllItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-               parent.setSelectionStart(0);
-               parent.setSelectionEnd(parent.getText().length());
-               menu.setVisible(false);
-            }
+         JMenuItem selectAllItem = new JMenuItem(MESSAGES.get("select_all"), Icon.getIcon("/icons/accept.png"));
+         selectAllItem.addActionListener(a -> {
+            parent.setSelectionStart(0);
+            parent.setSelectionEnd(parent.getText().length());
+            menu.setVisible(false);
          });
          menu.add(selectAllItem);
 

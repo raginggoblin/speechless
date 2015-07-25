@@ -116,9 +116,10 @@ public class Speeker {
       }.start();
    }
 
-   private void initMaryTTS() throws MaryConfigurationException {
+   public void initMaryTTS() throws MaryConfigurationException {
       marytts = new LocalMaryInterface();
-      marytts.setVoice(PROPERTIES.getVoice());
+      marytts.setVoice(Voice.getSelectedVoice().getName());
+      marytts.setAudioEffects(SoundEffect.toMaryTTSString());
    }
 
    private void initSpeeking() {
