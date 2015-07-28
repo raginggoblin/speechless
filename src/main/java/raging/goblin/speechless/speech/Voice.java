@@ -19,9 +19,10 @@
 
 package raging.goblin.speechless.speech;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.prefs.Preferences;
@@ -61,6 +62,10 @@ public class Voice {
    private static final Logger LOG = Logger.getLogger(Voice.class);
    private static final List<Voice> VOICES = new ArrayList<>();
    private static final Preferences PREFERENCES = Preferences.userNodeForPackage(Voice.class);
+   private static final String XML_DIR = "/voices/";
+   private static final List<String> XML_FILES = Arrays.asList("voice-cmu-bdl-hsmm-5.1-component.xml",
+         "voice-cmu-rms-hsmm-5.1-component.xml", "voice-cmu-slt-hsmm-5.1.2-component.xml",
+         "voice-dfki-obadiah-hsmm-5.1-component.xml", "voice-dfki-poppy-hsmm-5.1-component.xml");
    private static final String DEFAULT_VOICE = "dfki-obadiah-hsmm";
 
    @Getter
@@ -98,23 +103,13 @@ public class Voice {
    }
 
    private static List<Voice> readAllVoices() {
-      List<Voice> voices = new ArrayList<>();
-      String xmlDirectory = "/voices/";
-      String[] files = new File(Voice.class.getResource(xmlDirectory).getFile()).list();
-      for (String fileName : files) {
-         if (fileName.endsWith("xml")) {
-            Voice voice = readFromXml(new File(Voice.class.getResource(xmlDirectory).getFile() + fileName));
-            if (voice != null) {
-               voices.add(voice);
-            }
-         }
-      }
-      return voices;
+      return XML_FILES.stream().map(x -> readFromXml(Voice.class.getResourceAsStream(XML_DIR + x), x))
+            .filter(v -> v != null).collect(Collectors.toList());
    }
 
-   private static Voice readFromXml(File file) {
+   private static Voice readFromXml(InputStream xmlStream, String fileName) {
       try {
-         Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
+         Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(xmlStream);
          document.getDocumentElement().normalize();
          Node voice = document.getElementsByTagName("voice").item(0);
          Node description = document.getElementsByTagName("description").item(0);
@@ -131,11 +126,11 @@ public class Voice {
                   locale.getDisplayLanguage(), locale.getDisplayCountry());
 
          } else {
-            LOG.error("No <voice> or <description> element in xml file: " + file.getAbsolutePath());
+            LOG.error("No <voice> or <description> element in xml file: " + fileName);
          }
 
       } catch (SAXException | IOException | ParserConfigurationException e) {
-         LOG.error("Not able to parse xml to voice, file: " + file.getAbsolutePath(), e);
+         LOG.error("Not able to parse xml to voice, file: " + fileName, e);
       }
 
       return null;

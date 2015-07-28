@@ -68,7 +68,7 @@ public class VoiceConfigurationDialog extends JDialog {
    public VoiceConfigurationDialog(JFrame parent) {
       super(parent, MESSAGES.get("voice_config_title"), true);
       setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-      setSize(950, 750);
+      setSize(950, 800);
       ScreenPositioner.centerOnScreen(this);
       initActionsPanel();
       initConfigPanel();
@@ -196,10 +196,9 @@ public class VoiceConfigurationDialog extends JDialog {
          try {
             LocalMaryInterface marytts = new LocalMaryInterface();
             marytts.setVoice(((Voice) voicesBox.getSelectedItem()).getName());
-            StringBuilder effectsString = new StringBuilder();
-            effectPanels.stream().forEach(ep -> effectsString.append(ep.getEffectString()));
-            String eff = effectsString.toString();
-            marytts.setAudioEffects(eff);
+            String effectsString = effectPanels.stream().filter(ep -> ep.isEnabled()).map(ep -> ep.getEffectString())
+                  .collect(Collectors.joining("+"));
+            marytts.setAudioEffects(effectsString);
             AudioInputStream audio = marytts.generateAudio(previewField.getText().toLowerCase());
             AudioPlayer player = new AudioPlayer(audio);
             player.start();
@@ -246,7 +245,12 @@ public class VoiceConfigurationDialog extends JDialog {
       public String getEffectString() {
          List<Double> values = levelPanels.stream().map(lp -> ((Double) lp.getSpinner().getValue()))
                .collect(Collectors.toList());
-         return enabledBox.isSelected() ? String.format(soundEffect.getFormat(), values.toArray()) : "";
+         return String.format(soundEffect.getFormat(), values.toArray());
+      }
+
+      @Override
+      public boolean isEnabled() {
+         return enabledBox.isSelected();
       }
 
       private void initPanel() {
@@ -276,7 +280,7 @@ public class VoiceConfigurationDialog extends JDialog {
 
          JPanel levelsPanel = new JPanel();
          levelsPanel.setLayout(new BoxLayout(levelsPanel, BoxLayout.PAGE_AXIS));
-         List<String> levelKeys = new ArrayList<String>(soundEffect.getLevelKeys());
+         List<String> levelKeys = soundEffect.getLevelKeys();
          for (int i = 0; i < soundEffect.getLevelKeys().size(); i++) {
             LevelPanel levelPanel = new LevelPanel(soundEffect, levelKeys.get(i),
                   soundEffect.getLevel(levelKeys.get(i)), soundEffect.getDefaultLevels().get(levelKeys.get(i)));
@@ -287,7 +291,7 @@ public class VoiceConfigurationDialog extends JDialog {
          add(levelsPanel, cc.xyw(5, 1, 9, "fill, top"));
 
          levelPanels.stream().forEach(lp -> lp.getSpinner().setEnabled(enabledBox.isSelected()));
-         enabledBox.addActionListener(a -> levelPanels.stream().forEach(
+         enabledBox.addChangeListener(c -> levelPanels.stream().forEach(
                lp -> lp.getSpinner().setEnabled(enabledBox.isSelected())));
       }
    }
@@ -326,10 +330,5 @@ public class VoiceConfigurationDialog extends JDialog {
       public JSpinner getSpinner() {
          return levelSpinner;
       }
-   }
-
-   public static void main(String[] args) {
-      VoiceConfigurationDialog d = new VoiceConfigurationDialog(null);
-      d.setVisible(true);
    }
 }

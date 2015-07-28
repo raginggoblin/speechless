@@ -41,13 +41,11 @@ import marytts.util.data.audio.AudioPlayer;
 import org.apache.log4j.Logger;
 
 import raging.goblin.speechless.Messages;
-import raging.goblin.speechless.SpeechLessProperties;
 import raging.goblin.speechless.ui.ToastWindow;
 
 public class Speeker {
 
    private static final Logger LOG = Logger.getLogger(Speeker.class);
-   private static final SpeechLessProperties PROPERTIES = SpeechLessProperties.getInstance();
    private static final Messages MESSAGES = Messages.getInstance();
 
    private BlockingQueue<Pair<AudioPlayer, Integer>> speechesQueue = new ArrayBlockingQueue<>(100);

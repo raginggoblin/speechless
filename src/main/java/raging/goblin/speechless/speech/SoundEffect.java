@@ -22,11 +22,9 @@ package raging.goblin.speechless.speech;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
@@ -58,7 +56,6 @@ public class SoundEffect {
          EFFECTS.add(createTractScaler());
          EFFECTS.add(createF0Add());
          EFFECTS.add(createF0Scale());
-         EFFECTS.add(createRate());
          EFFECTS.add(createRobot());
          EFFECTS.add(createWhisper());
          EFFECTS.add(createStadium());
@@ -70,13 +67,12 @@ public class SoundEffect {
    }
 
    public static String toMaryTTSString() {
-      StringBuilder builder = new StringBuilder();
-      getAllSoundEffects().stream().filter(e -> e.isEnabled()).forEach(e -> builder.append(e.getMaryTTSString()));
-      return builder.toString();
+      return getAllSoundEffects().stream().filter(e -> e.isEnabled()).map(e -> e.getMaryTTSString())
+            .collect(Collectors.joining("+"));
    }
 
-   public Set<String> getLevelKeys() {
-      return new HashSet<>(defaultLevels.keySet());
+   public List<String> getLevelKeys() {
+      return new ArrayList<>(defaultLevels.keySet());
    }
 
    public void setLevel(String key, double value) {
@@ -105,51 +101,51 @@ public class SoundEffect {
 
    private static SoundEffect createTractScaler() {
       return new SoundEffect(Effect.TRACT_SCALER, MESSAGES.get("tract_scaler"), MESSAGES.get("tract_scaler_help"),
-            "TractScaler amount:%.2f;", createDefaultLevelsMap(Arrays.asList("amount"),
+            "TractScaler(amount=%.2f;)", createDefaultLevelsMap(Arrays.asList("amount"),
                   Arrays.asList(Arrays.asList(1.5, 0.25, 4.0, 0.1))));
    }
 
    private static SoundEffect createJetPilot() {
-      return new SoundEffect(Effect.JET_PILOT, MESSAGES.get("jet_pilot"), MESSAGES.get("jet_pilot_help"), "JetPilot;",
+      return new SoundEffect(Effect.JET_PILOT, MESSAGES.get("jet_pilot"), MESSAGES.get("jet_pilot_help"), "JetPilot",
             new HashMap<>());
    }
 
    private static SoundEffect createF0Scale() {
       return new SoundEffect(Effect.F0_SCALE, MESSAGES.get("f0_scaling"), MESSAGES.get("f0_scaling_help"),
-            "F0Scale f0Scale:%.2f;", createDefaultLevelsMap(Arrays.asList("f0Scale"),
+            "F0Scale(f0Scale=%.2f;)", createDefaultLevelsMap(Arrays.asList("f0Scale"),
                   Arrays.asList(Arrays.asList(2.0, 0.0, 3.0, 0.1))));
    }
 
    private static SoundEffect createF0Add() {
-      return new SoundEffect(Effect.F0_ADD, MESSAGES.get("f0_add"), MESSAGES.get("f0_add_help"), "F0Add f0Add:%.2f;",
+      return new SoundEffect(Effect.F0_ADD, MESSAGES.get("f0_add"), MESSAGES.get("f0_add_help"), "F0Add(f0Add=%.2f;)",
             createDefaultLevelsMap(Arrays.asList("f0Add"), Arrays.asList(Arrays.asList(50.0, -300.0, 300.0, 10.0))));
    }
 
    private static SoundEffect createRate() {
-      return new SoundEffect(Effect.RATE, MESSAGES.get("rate"), MESSAGES.get("rate_help"), "Rate durScale:%.2f;",
+      return new SoundEffect(Effect.RATE, MESSAGES.get("rate"), MESSAGES.get("rate_help"), "Rate(durScale=%.2f;)",
             createDefaultLevelsMap(Arrays.asList("durScale"), Arrays.asList(Arrays.asList(1.5, 0.1, 3.0, 0.1))));
    }
 
    private static SoundEffect createRobot() {
-      return new SoundEffect(Effect.ROBOT, MESSAGES.get("robot"), MESSAGES.get("robot_help"), "Robot amount:%.2f;",
+      return new SoundEffect(Effect.ROBOT, MESSAGES.get("robot"), MESSAGES.get("robot_help"), "Robot(amount=%.2f;)",
             createDefaultLevelsMap(Arrays.asList("amount"), Arrays.asList(Arrays.asList(100.0, 0.0, 100.0, 10.0))));
    }
 
    private static SoundEffect createWhisper() {
       return new SoundEffect(Effect.WHISPER, MESSAGES.get("whisper"), MESSAGES.get("whisper_help"),
-            "Whisper amount:%.2f;", createDefaultLevelsMap(Arrays.asList("amount"),
+            "Whisper(amount=%.2f;)", createDefaultLevelsMap(Arrays.asList("amount"),
                   Arrays.asList(Arrays.asList(100.0, 0.0, 100.0, 10.0))));
    }
 
    private static SoundEffect createStadium() {
       return new SoundEffect(Effect.STADIUM, MESSAGES.get("stadium"), MESSAGES.get("stadium_help"),
-            "Stadium amount:%.2f;", createDefaultLevelsMap(Arrays.asList("amount"),
+            "Stadium(amount=%.2f;)", createDefaultLevelsMap(Arrays.asList("amount"),
                   Arrays.asList(Arrays.asList(100.0, 0.0, 200.0, 10.0))));
    }
 
    private static SoundEffect createChorus() {
       return new SoundEffect(Effect.CHORUS, MESSAGES.get("chorus"), MESSAGES.get("chorus_help"),
-            "Chorus delay1:%.2f;amp1:%.2f;delay2:%.2f;amp2:%.2f;delay3:%.2f;amp3:%.2f;", createDefaultLevelsMap(
+            "Chorus(delay1=%.2f; amp1=%.2f; delay2=%.2f; amp2=%.2f; delay3=%.2f; amp3=%.2f;)", createDefaultLevelsMap(
                   Arrays.asList("delay1", "amp1", "delay2", "amp2", "delay3", "amp3"),
                   Arrays.asList(Arrays.asList(466.0, 0.0, 5000.0, 100.0), Arrays.asList(0.54, -5.0, 5.0, 0.1),
                         Arrays.asList(600.0, 0.0, 5000.0, 100.0), Arrays.asList(-0.10, -5.0, 5.0, 0.1),
@@ -158,7 +154,7 @@ public class SoundEffect {
 
    private static SoundEffect createFirFilter() {
       return new SoundEffect(Effect.FIR_FILTER, MESSAGES.get("fir_filter"), MESSAGES.get("fir_filter_help"),
-            "FIRFilter type:%.2f;fc1:%.2f;fc2:%.2f;", createDefaultLevelsMap(
+            "FIRFilter(type=%.2f; fc1=%.2f; fc2=%.2f;)", createDefaultLevelsMap(
                   Arrays.asList("type", "fc1", "fc2"),
                   Arrays.asList(Arrays.asList(3.0, 1.0, 4.0, 1.0), Arrays.asList(500.0, 0.0, 20000.0, 100.0),
                         Arrays.asList(2000.0, 0.0, 20000.0, 100.0))));
