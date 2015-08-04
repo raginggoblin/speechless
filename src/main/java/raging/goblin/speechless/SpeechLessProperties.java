@@ -25,7 +25,7 @@ import java.util.prefs.Preferences;
 
 public class SpeechLessProperties {
 
-   private static final String DEFAULT_NATIVE_HOOK_KEY_CODES = "29,42,31";
+   private static final String DEFAULT_NATIVE_HOOK_KEY_CODES = "29,56,57";
 
    public static final boolean DEFAULT_SPLASH_SCREEN_ENABLED = true;
    public static final boolean DEFAULT_SYSTRAY_ENABLED = true;

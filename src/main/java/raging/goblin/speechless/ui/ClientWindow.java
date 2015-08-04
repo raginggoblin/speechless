@@ -86,7 +86,6 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
    private Speeker speeker;
    private int lastOfferedToSpeek;
-   private Timer clickTimer;
 
    private JTextField typingField;
    private JTextArea speakingArea;
@@ -95,16 +94,23 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
    private JButton stopButton;
    private JPanel parseTextButtonPanel;
 
+   private boolean trayMenuVisible = false;
+   private Timer clickTimer;
+   private JPopupMenu systrayMenu;
+
    public ClientWindow(Speeker speeker) throws MaryConfigurationException {
+      super(MESSAGES.get("client_window_title"));
       this.speeker = speeker;
+      setDefaultCloseOperation(PROPERTIES.isSystrayEnabled() ? DISPOSE_ON_CLOSE : EXIT_ON_CLOSE);
       speeker.addEndOfSpeechListener(this);
       initGui();
-      if (SystemTray.isSupported() && PROPERTIES.isSystrayEnabled()) {
-         loadSystray();
+      if (PROPERTIES.isNativeHookEnabled()) {
          initNativeHook();
       }
-      setTitle(MESSAGES.get("client_window_title"));
-      setVisible(PROPERTIES.isSystrayEnabled());
+      if (java.awt.SystemTray.isSupported() && PROPERTIES.isSystrayEnabled()) {
+         loadSystray();
+      }
+      setVisible(!PROPERTIES.isSystrayEnabled());
    }
 
    @Override
@@ -121,7 +127,6 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
    }
 
    private void initGui() {
-      setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       setSize(600, 400);
       ScreenPositioner.centerOnScreen(this);
       BorderLayout layout = new BorderLayout(10, 10);
@@ -296,6 +301,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
          trayIcon.setImageAutoSize(true);
          trayIcon.addMouseListener(new TrayIconMouseListener());
          tray.add(trayIcon);
+         systrayMenu = createSystrayMenu();
       } catch (Exception e) {
          LOG.warn("TrayIcon could not be added.");
          LOG.debug("TrayIcon could not be added.", e);
@@ -303,46 +309,22 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       }
    }
 
-   private class TrayIconMouseListener implements MouseListener {
+   private JPopupMenu createSystrayMenu() {
+      JPopupMenu menu = new JPopupMenu();
 
-      @Override
-      public void mouseClicked(MouseEvent e) {
-         // Left button
-         if (e.getButton() != MouseEvent.BUTTON3) {
-            if (e.getClickCount() == 1) {
-               // Single click - toggle visibility of sticky notes
-               clickTimer = new Timer(PROPERTIES.getDoubleClickDelay(), a -> setVisible(!isVisible()));
-               clickTimer.setRepeats(false);
-               clickTimer.start();
-            } else if (e.getClickCount() >= 2) {
-               // Double click - show/hide gui
-               clickTimer.stop();
-               setVisible(!isVisible());
-            }
-         }
-      }
+      JMenuItem showGuiItem = new JMenuItem(MESSAGES.get("show_gui"),
+            Icon.getIcon("/icons/application_form_magnify.png"));
+      showGuiItem.addActionListener(e -> {
+         trayMenuVisible = false;
+         setVisible(true);
+      });
+      menu.add(showGuiItem);
 
-      @Override
-      public void mouseEntered(MouseEvent e) {
-         // Nothing to do
-      }
+      JMenuItem quitItem = new JMenuItem(MESSAGES.get("quit"), Icon.getIcon("/icons/cross.png"));
+      quitItem.addActionListener(e -> System.exit(0));
+      menu.add(quitItem);
 
-      @Override
-      public void mouseExited(MouseEvent e) {
-         // Nothing to do
-      }
-
-      @Override
-      public void mousePressed(MouseEvent e) {
-         if (e.getButton() == MouseEvent.BUTTON3) {
-            // Right button
-         }
-      }
-
-      @Override
-      public void mouseReleased(MouseEvent e) {
-         // Nothing to do
-      }
+      return menu;
    }
 
    private class EditAdapter extends MouseAdapter implements FocusListener {
@@ -434,6 +416,54 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       @Override
       public void focusLost(FocusEvent e) {
          menu.setVisible(false);
+      }
+   }
+
+   private class TrayIconMouseListener implements MouseListener {
+
+      @Override
+      public void mouseClicked(MouseEvent e) {
+         // Left button
+         if (e.getButton() != MouseEvent.BUTTON3) {
+            trayMenuVisible = false;
+            if (e.getClickCount() == 1) {
+               // Single click - show menu
+               clickTimer = new Timer(PROPERTIES.getDoubleClickDelay(), ae -> {
+                  trayMenuVisible = !trayMenuVisible;
+                  systrayMenu.setLocation(e.getXOnScreen() + 1, e.getYOnScreen() + 1);
+                  systrayMenu.setInvoker(systrayMenu);
+                  systrayMenu.setVisible(trayMenuVisible);
+               });
+               clickTimer.setRepeats(false);
+               clickTimer.start();
+            } else if (e.getClickCount() >= 2) {
+               // Double click - show/hide gui
+               clickTimer.stop();
+               setVisible(!isVisible());
+            }
+         }
+      }
+
+      @Override
+      public void mouseEntered(MouseEvent e) {
+         // Nothing to do
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+         // Nothing to do
+      }
+
+      @Override
+      public void mousePressed(MouseEvent e) {
+         if (e.getButton() == MouseEvent.BUTTON3) {
+            // Right button - Do nothing
+         }
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+         // Nothing to do
       }
    }
 }

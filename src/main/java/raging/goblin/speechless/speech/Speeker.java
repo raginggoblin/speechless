@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -127,10 +128,12 @@ public class Speeker {
          public void run() {
             while (running) {
                try {
-                  currentlySpeeking = speechesQueue.take();
-                  currentlySpeeking.getFirst().start();
-                  currentlySpeeking.getFirst().join();
-                  notifyEndOfSpeechListeners(currentlySpeeking.getSecond());
+                  currentlySpeeking = speechesQueue.poll(1, TimeUnit.SECONDS);
+                  if (currentlySpeeking != null) {
+                     currentlySpeeking.getFirst().start();
+                     currentlySpeeking.getFirst().join();
+                     notifyEndOfSpeechListeners(currentlySpeeking.getSecond());
+                  }
                } catch (InterruptedException e) {
                   LOG.error("Interrupted speeking thread", e);
                }

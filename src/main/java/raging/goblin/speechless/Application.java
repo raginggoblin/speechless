@@ -106,8 +106,8 @@ public class Application {
       @Override
       public void run() {
          try {
-            speeker.stop();
             GlobalScreen.unregisterNativeHook();
+            speeker.stop();
          } catch (NativeHookException ex) {
             LOG.warn("Unable to unregister native hook");
          }
