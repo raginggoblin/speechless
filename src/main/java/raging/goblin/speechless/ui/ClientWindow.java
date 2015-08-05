@@ -101,15 +101,15 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
    public ClientWindow(Speeker speeker) throws MaryConfigurationException {
       super(MESSAGES.get("client_window_title"));
       this.speeker = speeker;
-      setDefaultCloseOperation(PROPERTIES.isSystrayEnabled() ? DISPOSE_ON_CLOSE : EXIT_ON_CLOSE);
       speeker.addEndOfSpeechListener(this);
       initGui();
-      if (PROPERTIES.isNativeHookEnabled()) {
-         initNativeHook();
-      }
       if (java.awt.SystemTray.isSupported() && PROPERTIES.isSystrayEnabled()) {
          loadSystray();
+         if (PROPERTIES.isNativeHookEnabled()) {
+             initNativeHook();
+         }
       }
+      setDefaultCloseOperation(PROPERTIES.isSystrayEnabled() ? DISPOSE_ON_CLOSE : EXIT_ON_CLOSE);
       setVisible(!PROPERTIES.isSystrayEnabled());
    }
 
