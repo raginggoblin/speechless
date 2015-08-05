@@ -68,7 +68,7 @@ public class VoiceConfigurationDialog extends JDialog {
    public VoiceConfigurationDialog(JFrame parent) {
       super(parent, MESSAGES.get("voice_config_title"), true);
       setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-      setSize(950, 800);
+      setSize(950, 850);
       ScreenPositioner.centerOnScreen(this);
       initActionsPanel();
       initConfigPanel();
