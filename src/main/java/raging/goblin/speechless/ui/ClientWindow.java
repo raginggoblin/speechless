@@ -103,11 +103,11 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       this.speeker = speeker;
       speeker.addEndOfSpeechListener(this);
       initGui();
-      if (java.awt.SystemTray.isSupported() && PROPERTIES.isSystrayEnabled()) {
+      if (SystemTray.isSupported() && PROPERTIES.isSystrayEnabled()) {
          loadSystray();
-         if (PROPERTIES.isNativeHookEnabled()) {
-             initNativeHook();
-         }
+      }
+      if (PROPERTIES.isNativeHookEnabled()) {
+         initNativeHook();
       }
       setDefaultCloseOperation(PROPERTIES.isSystrayEnabled() ? DISPOSE_ON_CLOSE : EXIT_ON_CLOSE);
       setVisible(!PROPERTIES.isSystrayEnabled());
@@ -207,10 +207,16 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       JMenuBar menuBar = new JMenuBar();
 
       JMenu fileMenu = new JMenu(MESSAGES.get("file"));
-
       menuBar.add(fileMenu);
 
+      JMenuItem quitItem = new JMenuItem(MESSAGES.get("quit"));
+      quitItem.addActionListener(a -> {
+         System.exit(0);
+      });
+      fileMenu.add(quitItem);
+
       JMenu editMenu = new JMenu(MESSAGES.get("edit"));
+      menuBar.add(editMenu);
 
       JMenuItem configureVoiceItem = new JMenuItem(MESSAGES.get("configure_voice"));
       configureVoiceItem.addActionListener(a -> {
@@ -228,7 +234,16 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       });
       editMenu.add(configureVoiceItem);
 
-      menuBar.add(editMenu);
+      JMenuItem configureGuiItem = new JMenuItem(MESSAGES.get("configure_gui"));
+      configureGuiItem.addActionListener(a -> {
+         GuiConfigDialog dialog = new GuiConfigDialog(ClientWindow.this);
+         dialog.setVisible(true);
+         if (dialog.isOkPressed()) {
+            JOptionPane.showMessageDialog(ClientWindow.this, MESSAGES.get("restart_message"),
+                  MESSAGES.get("restart_title"), JOptionPane.INFORMATION_MESSAGE);
+         }
+      });
+      editMenu.add(configureGuiItem);
 
       JMenu helpMenu = new JMenu(MESSAGES.get("help"));
       menuBar.add(helpMenu);
@@ -258,18 +273,20 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
             @Override
             public void nativeKeyPressed(NativeKeyEvent e) {
-               if (Arrays.stream(PROPERTIES.getNativeHookKeyCodes()).anyMatch(new Integer(e.getKeyCode())::equals)) {
-                  pressedKeyCodes.add(e.getKeyCode());
-               }
-               if (pressedKeyCodes.size() == 3) {
-                  pressedKeyCodes.clear();
-                  SwingUtilities.invokeLater(new Runnable() {
+               if (PROPERTIES.isSystrayEnabled()) {
+                  if (Arrays.stream(PROPERTIES.getNativeHookKeyCodes()).anyMatch(new Integer(e.getKeyCode())::equals)) {
+                     pressedKeyCodes.add(e.getKeyCode());
+                  }
+                  if (pressedKeyCodes.size() == 3) {
+                     pressedKeyCodes.clear();
+                     SwingUtilities.invokeLater(new Runnable() {
 
-                     @Override
-                     public void run() {
-                        setVisible(!isVisible());
-                     }
-                  });
+                        @Override
+                        public void run() {
+                           setVisible(!isVisible());
+                        }
+                     });
+                  }
                }
             }
          });

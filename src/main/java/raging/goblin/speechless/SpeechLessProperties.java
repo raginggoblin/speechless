@@ -36,7 +36,7 @@ public class SpeechLessProperties {
    private static final String KEY_LANGUAGE = "language";
    private static final String KEY_COUNTRY = "country";
    private static final String KEY_NATIVE_HOOK_KEY_CODES = "nativehookkeycodes";
-   private static final String KEY_SPLASH_SCREEN_ENABLED = "nativehookkeycodes";
+   private static final String KEY_SPLASH_SCREEN_ENABLED = "splashscreenenabled";
    private static final String KEY_SYSTRAY_ENABLED = "systrayenabled";
    private static final String KEY_VOICE = "voice";
    private static final String KEY_DOUBLE_CLICK_DELAY = "doubleclickdelay";
@@ -103,7 +103,8 @@ public class SpeechLessProperties {
    public int[] getNativeHookKeyCodes() {
       if (nativeHookKeyCodes == null) {
          String[] keyCodes = userPreferences.get(KEY_NATIVE_HOOK_KEY_CODES, DEFAULT_NATIVE_HOOK_KEY_CODES).split(",");
-         nativeHookKeyCodes = Arrays.stream(keyCodes).mapToInt(v -> Integer.parseInt(v)).toArray();
+         nativeHookKeyCodes = Arrays.stream(keyCodes).filter(v -> !v.trim().equals(""))
+               .mapToInt(v -> Integer.parseInt(v.trim())).toArray();
       }
       return nativeHookKeyCodes;
    }
