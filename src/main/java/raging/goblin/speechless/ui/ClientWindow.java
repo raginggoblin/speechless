@@ -63,6 +63,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.text.JTextComponent;
 
 import marytts.exceptions.MaryConfigurationException;
@@ -170,9 +171,14 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       saveButton.setToolTipText(MESSAGES.get("save_tooltip"));
       saveButton.addActionListener(a -> {
          JFileChooser chooser = new JFileChooser();
+         chooser.setDialogTitle(MESSAGES.get("save_to_wav"));
+         chooser.setFileFilter(new WaveFilter());
          int returnValue = chooser.showOpenDialog(ClientWindow.this);
          if (returnValue == JFileChooser.APPROVE_OPTION) {
             File file = chooser.getSelectedFile();
+            if (!file.getName().endsWith("wav") || !file.getName().endsWith("WAV")) {
+               file = new File(file.getAbsolutePath() + ".wav");
+            }
             speeker.save(speakingArea.getText(), file);
          }
       });
@@ -481,6 +487,19 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       @Override
       public void mouseReleased(MouseEvent e) {
          // Nothing to do
+      }
+   }
+
+   private class WaveFilter extends FileFilter {
+
+      @Override
+      public boolean accept(File file) {
+         return file.isDirectory() || file.getName().endsWith("wav") || file.getName().endsWith("WAV");
+      }
+
+      @Override
+      public String getDescription() {
+         return MESSAGES.get("wav");
       }
    }
 }
