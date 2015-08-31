@@ -40,7 +40,7 @@ import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
 import raging.goblin.speechless.Messages;
-import raging.goblin.speechless.SpeechLessProperties;
+import raging.goblin.speechless.UIProperties;
 
 import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;
@@ -50,7 +50,7 @@ import com.jgoodies.forms.layout.RowSpec;
 public class RecordNativeHookDialog extends JDialog {
 
    private static final Messages MESSAGES = Messages.getInstance();
-   private static final SpeechLessProperties PROPERTIES = SpeechLessProperties.getInstance();
+   private static final UIProperties PROPERTIES = UIProperties.getInstance();
 
    private boolean okButtonPressed = false;
    private List<Integer> nativeHookKeyCodes = new ArrayList<>();

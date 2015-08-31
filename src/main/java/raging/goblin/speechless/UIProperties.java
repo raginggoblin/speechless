@@ -23,11 +23,12 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.prefs.Preferences;
 
-public class SpeechLessProperties {
+public class UIProperties {
 
    private static final String DEFAULT_NATIVE_HOOK_KEY_CODES = "29,56,57";
 
    public static final boolean DEFAULT_SPLASH_SCREEN_ENABLED = true;
+   public static final boolean DEFAULT_WELCOME_SCREEN_ENABLED = true;
    public static final boolean DEFAULT_SYSTRAY_ENABLED = true;
    public static final String DEFAULT_VOICE = "DFKI_OBADIAH";
    public static final int DEFAULT_DOUBLE_CLICK_DELAY = 250;
@@ -37,23 +38,24 @@ public class SpeechLessProperties {
    private static final String KEY_COUNTRY = "country";
    private static final String KEY_NATIVE_HOOK_KEY_CODES = "nativehookkeycodes";
    private static final String KEY_SPLASH_SCREEN_ENABLED = "splashscreenenabled";
+   private static final String KEY_WELCOME_SCREEN_ENABLED = "welcomescreenenabled";
    private static final String KEY_SYSTRAY_ENABLED = "systrayenabled";
    private static final String KEY_VOICE = "voice";
    private static final String KEY_DOUBLE_CLICK_DELAY = "doubleclickdelay";
    private static final String KEY_TOAST_TIME = "toasttime";
 
-   private static SpeechLessProperties instance;
+   private static UIProperties instance;
    private boolean nativeHookEnabled = true;
    private int[] nativeHookKeyCodes;
-   private static Preferences userPreferences = Preferences.userNodeForPackage(SpeechLessProperties.class);
+   private static Preferences userPreferences = Preferences.userNodeForPackage(UIProperties.class);
 
-   private SpeechLessProperties() {
+   private UIProperties() {
       // Singleton
    }
 
-   public static SpeechLessProperties getInstance() {
+   public static UIProperties getInstance() {
       if (instance == null) {
-         instance = new SpeechLessProperties();
+         instance = new UIProperties();
       }
       return instance;
    }
@@ -82,6 +84,14 @@ public class SpeechLessProperties {
 
    public boolean isSplashScreenEnabled() {
       return userPreferences.getBoolean(KEY_SPLASH_SCREEN_ENABLED, DEFAULT_SPLASH_SCREEN_ENABLED);
+   }
+
+   public void setWelcomeScreenEnabled(boolean welcomeScreenEnabled) {
+      userPreferences.putBoolean(KEY_WELCOME_SCREEN_ENABLED, welcomeScreenEnabled);
+   }
+
+   public boolean isWelcomeScreenEnabled() {
+      return userPreferences.getBoolean(KEY_WELCOME_SCREEN_ENABLED, DEFAULT_WELCOME_SCREEN_ENABLED);
    }
 
    public void setSystrayEnabled(boolean systrayEnabled) {

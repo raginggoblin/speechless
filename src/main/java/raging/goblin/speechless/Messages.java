@@ -27,7 +27,7 @@ import java.util.ResourceBundle;
  */
 public class Messages {
 
-	private static final SpeechLessProperties PROPERTIES = SpeechLessProperties.getInstance();
+	private static final UIProperties PROPERTIES = UIProperties.getInstance();
 
 	private static Messages instance;
 

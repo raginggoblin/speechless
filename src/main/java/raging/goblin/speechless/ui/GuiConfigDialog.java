@@ -1,3 +1,22 @@
+/*
+ * Copyright 2015, RagingGoblin <http://raginggoblin.wordpress.com>
+ * 
+ * This file is part of SpeechLess.
+ *
+ *  SpeechLess is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  SpeechLess is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with SpeechLess.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package raging.goblin.speechless.ui;
 
 import java.awt.BorderLayout;
@@ -17,7 +36,7 @@ import lombok.Getter;
 import org.jnativehook.keyboard.NativeKeyEvent;
 
 import raging.goblin.speechless.Messages;
-import raging.goblin.speechless.SpeechLessProperties;
+import raging.goblin.speechless.UIProperties;
 
 import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;
@@ -27,7 +46,7 @@ import com.jgoodies.forms.layout.RowSpec;
 public class GuiConfigDialog extends JDialog {
 
    private static final Messages MESSAGES = Messages.getInstance();
-   private static final SpeechLessProperties PROPERTIES = SpeechLessProperties.getInstance();
+   private static final UIProperties PROPERTIES = UIProperties.getInstance();
 
    @Getter
    private boolean okPressed;

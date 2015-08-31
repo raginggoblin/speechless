@@ -74,14 +74,14 @@ import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
 import raging.goblin.speechless.Messages;
-import raging.goblin.speechless.SpeechLessProperties;
+import raging.goblin.speechless.UIProperties;
 import raging.goblin.speechless.speech.Speeker;
 import raging.goblin.speechless.speech.Speeker.EndOfSpeechListener;
 
 public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
    private static final Messages MESSAGES = Messages.getInstance();
-   private static final SpeechLessProperties PROPERTIES = SpeechLessProperties.getInstance();
+   private static final UIProperties PROPERTIES = UIProperties.getInstance();
    private static final Logger LOG = Logger.getLogger(ClientWindow.class);
 
    private Speeker speeker;

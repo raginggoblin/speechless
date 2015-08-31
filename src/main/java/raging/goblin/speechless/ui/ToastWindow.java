@@ -37,12 +37,12 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-import raging.goblin.speechless.SpeechLessProperties;
+import raging.goblin.speechless.UIProperties;
 
 public class ToastWindow extends JFrame {
 
    private static final int MARGIN = 25;
-   private static final SpeechLessProperties PROPERTIES = SpeechLessProperties.getInstance();
+   private static final UIProperties PROPERTIES = UIProperties.getInstance();
    private static final String textFormat = "<html>%s</html>";
 
    private JLabel messageLabel;

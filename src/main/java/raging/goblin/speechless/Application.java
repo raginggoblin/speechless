@@ -36,11 +36,12 @@ import raging.goblin.speechless.speech.Speeker;
 import raging.goblin.speechless.ui.ClientWindow;
 import raging.goblin.speechless.ui.ScreenPositioner;
 import raging.goblin.speechless.ui.SplashScreen;
+import raging.goblin.speechless.ui.WelcomeScreen;
 
 public class Application {
 
    private static final Logger LOG = Logger.getLogger(Application.class);
-   private static final SpeechLessProperties PROPERTIES = SpeechLessProperties.getInstance();
+   private static final UIProperties PROPERTIES = UIProperties.getInstance();
    private static final Messages MESSAGES = Messages.getInstance();
 
    public static void main(String[] args) {
@@ -57,6 +58,12 @@ public class Application {
          new ClientWindow(speeker);
          splashScreen.setVisible(false);
          splashScreen.dispose();
+         if (PROPERTIES.isWelcomeScreenEnabled()) {
+            WelcomeScreen welcomeScreen = new WelcomeScreen();
+            ScreenPositioner.centerOnScreen(welcomeScreen);
+            welcomeScreen.setVisible(true);
+         }
+
       } catch (MaryConfigurationException e) {
          LOG.error("Unable to start Speeker", e);
          splashScreen.setMessage(MESSAGES.get("initialization_error"));
@@ -76,31 +83,31 @@ public class Application {
    private static void loadLaf() {
       try {
          boolean isGtk = tryLinuxLaf();
-         if(!isGtk) {
-             if (UIManager.getSystemLookAndFeelClassName().contains("Metal")) {
-                 setNimbusLaf();
-             } else {
-                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                 LOG.debug("Setting system look and feel");
-             }
+         if (!isGtk) {
+            if (UIManager.getSystemLookAndFeelClassName().contains("Metal")) {
+               setNimbusLaf();
+            } else {
+               UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+               LOG.debug("Setting system look and feel");
+            }
          }
       } catch (Exception e) {
          LOG.error("Could not set system look and feel");
          LOG.debug(e.getMessage(), e);
       }
    }
-   
-    private static boolean tryLinuxLaf() throws ClassNotFoundException, InstantiationException, IllegalAccessException,
-            UnsupportedLookAndFeelException {
-        for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-            if ("GTK+".equals(info.getName())) {
-                UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-                LOG.debug("Setting GTK+ look and feel");
-                return true;
-            }
-        }
-        return false;
-    }
+
+   private static boolean tryLinuxLaf() throws ClassNotFoundException, InstantiationException, IllegalAccessException,
+         UnsupportedLookAndFeelException {
+      for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+         if ("GTK+".equals(info.getName())) {
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+            LOG.debug("Setting GTK+ look and feel");
+            return true;
+         }
+      }
+      return false;
+   }
 
    private static void setNimbusLaf() throws ClassNotFoundException, InstantiationException, IllegalAccessException,
          UnsupportedLookAndFeelException {
