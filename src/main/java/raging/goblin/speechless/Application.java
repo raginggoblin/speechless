@@ -45,7 +45,7 @@ public class Application {
    private static final Messages MESSAGES = Messages.getInstance();
 
    public static void main(String[] args) {
-      loadLaf();
+      loadLaf(args);
       setLocale();
 
       SplashScreen splashScreen = new SplashScreen();
@@ -80,17 +80,33 @@ public class Application {
       Locale.setDefault(new Locale(PROPERTIES.getLocaleLanguage(), PROPERTIES.getLocaleCountry()));
    }
 
-   private static void loadLaf() {
+   private static void loadLaf(String[] args) {
       try {
-         boolean isGtk = tryLinuxLaf();
-         if (!isGtk) {
-            if (UIManager.getSystemLookAndFeelClassName().contains("Metal")) {
-               setNimbusLaf();
-            } else {
-               UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-               LOG.debug("Setting system look and feel");
-            }
+
+         switch (args[0]) {
+         case "gtk":
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            LOG.debug("Setting system look and feel");
+            break;
+         case "nimbus":
+            setNimbusLaf();
+            break;
+         case "system":
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            LOG.debug("Setting system look and feel");
+            break;
          }
+
+         // boolean isGtk = tryLinuxLaf();
+         // if (!isGtk) {
+         // if (UIManager.getSystemLookAndFeelClassName().contains("Metal")) {
+         // setNimbusLaf();
+         // } else {
+         // UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+         // LOG.debug("Setting system look and feel");
+         // }
+         // }
+
       } catch (Exception e) {
          LOG.error("Could not set system look and feel");
          LOG.debug(e.getMessage(), e);
