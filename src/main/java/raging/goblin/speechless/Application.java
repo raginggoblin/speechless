@@ -82,31 +82,15 @@ public class Application {
 
    private static void loadLaf(String[] args) {
       try {
-
-         switch (args[0]) {
-         case "gtk":
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            LOG.debug("Setting system look and feel");
-            break;
-         case "nimbus":
-            setNimbusLaf();
-            break;
-         case "system":
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            LOG.debug("Setting system look and feel");
-            break;
+         boolean isGtk = tryLinuxLaf();
+         if (!isGtk) {
+            if (UIManager.getSystemLookAndFeelClassName().contains("Metal")) {
+               setNimbusLaf();
+            } else {
+               UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+               LOG.debug("Setting system look and feel");
+            }
          }
-
-         // boolean isGtk = tryLinuxLaf();
-         // if (!isGtk) {
-         // if (UIManager.getSystemLookAndFeelClassName().contains("Metal")) {
-         // setNimbusLaf();
-         // } else {
-         // UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-         // LOG.debug("Setting system look and feel");
-         // }
-         // }
-
       } catch (Exception e) {
          LOG.error("Could not set system look and feel");
          LOG.debug(e.getMessage(), e);
