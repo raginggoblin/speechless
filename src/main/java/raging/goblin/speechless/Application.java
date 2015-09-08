@@ -26,9 +26,9 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import marytts.exceptions.MaryConfigurationException;
 
-import org.apache.log4j.Logger;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 
@@ -38,9 +38,9 @@ import raging.goblin.speechless.ui.ScreenPositioner;
 import raging.goblin.speechless.ui.SplashScreen;
 import raging.goblin.speechless.ui.WelcomeScreen;
 
+@Slf4j
 public class Application {
 
-   private static final Logger LOG = Logger.getLogger(Application.class);
    private static final UIProperties PROPERTIES = UIProperties.getInstance();
    private static final Messages MESSAGES = Messages.getInstance();
 
@@ -65,19 +65,22 @@ public class Application {
          }
 
       } catch (MaryConfigurationException e) {
-         LOG.error("Unable to start Speeker", e);
+         log.error("Unable to start Speeker", e);
          splashScreen.setMessage(MESSAGES.get("initialization_error"));
          try {
             Thread.sleep(5000);
          } catch (InterruptedException e1) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
          }
          System.exit(0);
       }
    }
 
    private static void setLocale() {
-      Locale.setDefault(new Locale(PROPERTIES.getLocaleLanguage(), PROPERTIES.getLocaleCountry()));
+      String language = PROPERTIES.getLocaleLanguage();
+      String country = PROPERTIES.getLocaleCountry();
+      log.debug(String.format("Setting locale to: %s/%s", language, country));
+      Locale.setDefault(new Locale(language, country));
    }
 
    private static void loadLaf(String[] args) {
@@ -88,12 +91,12 @@ public class Application {
                setNimbusLaf();
             } else {
                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-               LOG.debug("Setting system look and feel");
+               log.debug("Setting system look and feel");
             }
          }
       } catch (Exception e) {
-         LOG.error("Could not set system look and feel");
-         LOG.debug(e.getMessage(), e);
+         log.error("Could not set look and feel");
+         log.debug(e.getMessage(), e);
       }
    }
 
@@ -102,10 +105,11 @@ public class Application {
       for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
          if ("GTK+".equals(info.getName())) {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-            LOG.debug("Setting GTK+ look and feel");
+            log.debug("Setting GTK+ look and feel");
             return true;
          }
       }
+      log.debug("Not able to set GTK+ look and feel");
       return false;
    }
 
@@ -114,10 +118,11 @@ public class Application {
       for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
          if ("Nimbus".equals(info.getName())) {
             UIManager.setLookAndFeel(info.getClassName());
-            LOG.debug("Setting Nimbus look and feel");
+            log.debug("Setting Nimbus look and feel");
             break;
          }
       }
+      log.debug("Not able to set  look and feel");
    }
 
    @AllArgsConstructor
@@ -130,8 +135,9 @@ public class Application {
          try {
             GlobalScreen.unregisterNativeHook();
             speeker.stop();
+            log.info("Speechless shutdown complete");
          } catch (NativeHookException ex) {
-            LOG.warn("Unable to unregister native hook");
+            log.warn("Unable to unregister native hook");
          }
       }
    }

@@ -66,9 +66,9 @@ import javax.swing.border.Border;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.JTextComponent;
 
+import lombok.extern.slf4j.Slf4j;
 import marytts.exceptions.MaryConfigurationException;
 
-import org.apache.log4j.Logger;
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
@@ -79,11 +79,11 @@ import raging.goblin.speechless.UIProperties;
 import raging.goblin.speechless.speech.Speeker;
 import raging.goblin.speechless.speech.Speeker.EndOfSpeechListener;
 
+@Slf4j
 public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
    private static final Messages MESSAGES = Messages.getInstance();
    private static final UIProperties PROPERTIES = UIProperties.getInstance();
-   private static final Logger LOG = Logger.getLogger(ClientWindow.class);
 
    private Speeker speeker;
    private int lastOfferedToSpeek;
@@ -234,7 +234,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
             } catch (Exception e) {
                JOptionPane.showMessageDialog(ClientWindow.this, MESSAGES.get("init_marytts_error"),
                      MESSAGES.get("error"), JOptionPane.ERROR_MESSAGE);
-               LOG.error("Unable to reinitialize marytts", e);
+               log.error("Unable to reinitialize marytts", e);
             }
          }
       });
@@ -297,7 +297,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
             }
          });
       } catch (NativeHookException ex) {
-         LOG.warn("Unable to use native hook, disabling it");
+         log.warn("Unable to use native hook, disabling it");
          PROPERTIES.setNativeHookEnabled(false);
       }
    }
@@ -326,8 +326,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
          tray.add(trayIcon);
          systrayMenu = createSystrayMenu();
       } catch (Exception e) {
-         LOG.warn("TrayIcon could not be added.");
-         LOG.debug("TrayIcon could not be added.", e);
+         log.warn("TrayIcon could not be added.", e);
          PROPERTIES.setSystrayEnabled(false);
       }
    }
@@ -403,7 +402,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
                   String pasted = (String) clipboardContents.getTransferData(DataFlavor.stringFlavor);
                   parent.replaceSelection(pasted);
                } catch (UnsupportedFlavorException | IOException ex) {
-                  LOG.error("Unable to paste content", ex);
+                  log.error("Unable to paste content", ex);
                }
             }
 

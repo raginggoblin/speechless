@@ -32,21 +32,19 @@ import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 
+import lombok.extern.slf4j.Slf4j;
 import marytts.LocalMaryInterface;
 import marytts.MaryInterface;
 import marytts.exceptions.MaryConfigurationException;
 import marytts.exceptions.SynthesisException;
 import marytts.util.Pair;
 import marytts.util.data.audio.AudioPlayer;
-
-import org.apache.log4j.Logger;
-
 import raging.goblin.speechless.Messages;
 import raging.goblin.speechless.ui.ToastWindow;
 
+@Slf4j
 public class Speeker {
 
-   private static final Logger LOG = Logger.getLogger(Speeker.class);
    private static final Messages MESSAGES = Messages.getInstance();
 
    private BlockingQueue<Pair<AudioPlayer, Integer>> speechesQueue = new ArrayBlockingQueue<>(100);
@@ -61,6 +59,7 @@ public class Speeker {
    }
 
    public void stop() {
+      log.info("Stopping Speeker");
       running = false;
    }
 
@@ -84,9 +83,9 @@ public class Speeker {
                      AudioInputStream audio = marytts.generateAudio(speech.toLowerCase());
                      AudioPlayer player = new AudioPlayer(audio);
                      speechesQueue.offer(new Pair<>(player, speechId));
-                     LOG.debug("Preparing to speek: " + speech);
+                     log.debug("Preparing to speek: " + speech);
                   } catch (SynthesisException e) {
-                     LOG.error("Unable to speek: " + speech, e);
+                     log.error("Unable to speek: " + speech, e);
                   }
                }
             }
@@ -108,7 +107,7 @@ public class Speeker {
                   toast.dispose();
                   ToastWindow.showToast(MESSAGES.get("ready_saving"), true);
                } catch (SynthesisException | IOException e) {
-                  LOG.error("Unable to save speech", e);
+                  log.error("Unable to save speech", e);
                }
             }
          }
@@ -116,9 +115,16 @@ public class Speeker {
    }
 
    public void initMaryTTS() throws MaryConfigurationException {
+      log.debug("Initialiazing MaryTTS");
       marytts = new LocalMaryInterface();
-      marytts.setVoice(Voice.getSelectedVoice().getName());
-      marytts.setAudioEffects(SoundEffect.toMaryTTSString());
+
+      String voice = Voice.getSelectedVoice().getName();
+      log.debug("Setting voice to: " + voice);
+      marytts.setVoice(voice);
+
+      String effects = SoundEffect.toMaryTTSString();
+      log.debug("Setting effects to: " + effects);
+      marytts.setAudioEffects(effects);
    }
 
    private void initSpeeking() {
@@ -135,13 +141,14 @@ public class Speeker {
                      notifyEndOfSpeechListeners(currentlySpeeking.getSecond());
                   }
                } catch (InterruptedException e) {
-                  LOG.error("Interrupted speeking thread", e);
+                  log.error("Interrupted speeking thread", e);
                }
             }
          }
       };
       running = true;
       dequeueThread.start();
+      log.info("Speeker started");
    }
 
    public void notifyEndOfSpeechListeners(int speechId) {
