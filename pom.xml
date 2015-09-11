@@ -4,7 +4,7 @@
 
 	<groupId>raging.goblin</groupId>
 	<artifactId>speechless</artifactId>
-	<version>0.5</version>
+	<version>0.7</version>
 	<packaging>jar</packaging>
 
 	<name>SpeechLess</name>

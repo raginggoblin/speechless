@@ -20,6 +20,7 @@
 package raging.goblin.speechless.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.SystemTray;
@@ -29,6 +30,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
@@ -96,8 +98,41 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
    private JPanel parseTextButtonPanel;
 
    private boolean trayMenuVisible = false;
+   private boolean shiftPressed = false;
+   private boolean ctrlPressed = false;
    private Timer clickTimer;
    private JPopupMenu systrayMenu;
+
+   private ActionListener playListener = a -> {
+      setParsing(true);
+      lastOfferedToSpeek = -1;
+      List<String> speeches = Arrays.asList(speakingArea.getText().trim().split("\n"));
+      for (int i = 0; i < speeches.size(); i++) {
+         if (!speeches.get(i).trim().isEmpty()) {
+            lastOfferedToSpeek++;
+         }
+      }
+      if (lastOfferedToSpeek < 0) {
+         setParsing(false);
+         typingField.grabFocus();
+      } else {
+         speeker.speek(speeches);
+      }
+   };
+
+   private ActionListener saveListener = a -> {
+      JFileChooser chooser = new JFileChooser();
+      chooser.setDialogTitle(MESSAGES.get("save_to_wav"));
+      chooser.setFileFilter(new WaveFilter());
+      int returnValue = chooser.showOpenDialog(ClientWindow.this);
+      if (returnValue == JFileChooser.APPROVE_OPTION) {
+         File file = chooser.getSelectedFile();
+         if (!file.getName().endsWith("wav") || !file.getName().endsWith("WAV")) {
+            file = new File(file.getAbsolutePath() + ".wav");
+         }
+         speeker.save(speakingArea.getText(), file);
+      }
+   };
 
    public ClientWindow(Speeker speeker) throws MaryConfigurationException {
       super(MESSAGES.get("client_window_title"));
@@ -119,6 +154,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       if (lastOfferedToSpeek == speechIndex) {
          setParsing(false);
       }
+      typingField.grabFocus();
    }
 
    @Override
@@ -140,6 +176,20 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       speakingArea.setLineWrap(true);
       JScrollPane speakingPane = new JScrollPane(speakingArea);
       speakingPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+      speakingArea.addKeyListener(new KeyAdapter() {
+
+         @Override
+         public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_TAB) {
+               if (shiftPressed) {
+                  typingField.grabFocus();
+               } else {
+                  saveButton.grabFocus();
+               }
+               e.consume();
+            }
+         }
+      });
       getContentPane().add(speakingPane, BorderLayout.CENTER);
       new EditAdapter(speakingArea);
 
@@ -169,34 +219,12 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
       saveButton = new JButton(Icon.getIcon("/icons/save.png"));
       saveButton.setToolTipText(MESSAGES.get("save_tooltip"));
-      saveButton.addActionListener(a -> {
-         JFileChooser chooser = new JFileChooser();
-         chooser.setDialogTitle(MESSAGES.get("save_to_wav"));
-         chooser.setFileFilter(new WaveFilter());
-         int returnValue = chooser.showOpenDialog(ClientWindow.this);
-         if (returnValue == JFileChooser.APPROVE_OPTION) {
-            File file = chooser.getSelectedFile();
-            if (!file.getName().endsWith("wav") || !file.getName().endsWith("WAV")) {
-               file = new File(file.getAbsolutePath() + ".wav");
-            }
-            speeker.save(speakingArea.getText(), file);
-         }
-      });
+      saveButton.addActionListener(saveListener);
       parseTextButtonPanel.add(saveButton, BorderLayout.EAST);
 
       playButton = new JButton(Icon.getIcon("/icons/control_play.png"));
       playButton.setToolTipText(MESSAGES.get("play_tooltip"));
-      playButton.addActionListener(a -> {
-         setParsing(true);
-         lastOfferedToSpeek = -1;
-         List<String> speeches = Arrays.asList(speakingArea.getText().split("\n"));
-         for (int i = 0; i < speeches.size(); i++) {
-            if (!speeches.get(i).trim().isEmpty()) {
-               lastOfferedToSpeek++;
-            }
-         }
-         speeker.speek(speeches);
-      });
+      playButton.addActionListener(playListener);
       parseTextButtonPanel.add(playButton, BorderLayout.EAST);
 
       stopButton = new JButton(Icon.getIcon("/icons/control_stop.png"));
@@ -206,6 +234,8 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
          setParsing(false);
       });
 
+      addGlobalKeyAdapters(typingField, speakingArea, saveButton, playButton);
+
       setJMenuBar(createMenu());
    }
 
@@ -213,18 +243,22 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       JMenuBar menuBar = new JMenuBar();
 
       JMenu fileMenu = new JMenu(MESSAGES.get("file"));
+      fileMenu.setMnemonic(KeyEvent.VK_F);
       menuBar.add(fileMenu);
 
       JMenuItem quitItem = new JMenuItem(MESSAGES.get("quit"));
+      quitItem.setMnemonic(KeyEvent.VK_Q);
       quitItem.addActionListener(a -> {
          System.exit(0);
       });
       fileMenu.add(quitItem);
 
       JMenu editMenu = new JMenu(MESSAGES.get("edit"));
+      editMenu.setMnemonic(KeyEvent.VK_E);
       menuBar.add(editMenu);
 
       JMenuItem configureVoiceItem = new JMenuItem(MESSAGES.get("configure_voice"));
+      configureVoiceItem.setMnemonic(KeyEvent.VK_V);
       configureVoiceItem.addActionListener(a -> {
          VoiceConfigurationDialog dialog = new VoiceConfigurationDialog(ClientWindow.this);
          dialog.setVisible(true);
@@ -241,6 +275,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       editMenu.add(configureVoiceItem);
 
       JMenuItem configureGuiItem = new JMenuItem(MESSAGES.get("configure_gui"));
+      configureGuiItem.setMnemonic(KeyEvent.VK_G);
       configureGuiItem.addActionListener(a -> {
          GuiConfigDialog dialog = new GuiConfigDialog(ClientWindow.this);
          dialog.setVisible(true);
@@ -252,6 +287,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       editMenu.add(configureGuiItem);
 
       JMenu helpMenu = new JMenu(MESSAGES.get("help"));
+      helpMenu.setMnemonic(KeyEvent.VK_H);
       menuBar.add(helpMenu);
 
       return menuBar;
@@ -331,6 +367,13 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       }
    }
 
+   private void addGlobalKeyAdapters(Component... components) {
+      Arrays.stream(components).forEach(c -> {
+         c.addKeyListener(new SpecialKeyAdapter());
+         c.addKeyListener(new ShortCutsAdapter());
+      });
+   }
+
    private JPopupMenu createSystrayMenu() {
       JPopupMenu menu = new JPopupMenu();
 
@@ -347,6 +390,39 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       menu.add(quitItem);
 
       return menu;
+   }
+
+   private class SpecialKeyAdapter extends KeyAdapter {
+
+      @Override
+      public void keyPressed(KeyEvent e) {
+         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+            shiftPressed = true;
+         } else if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
+            ctrlPressed = true;
+         }
+      }
+
+      @Override
+      public void keyReleased(KeyEvent e) {
+         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+            shiftPressed = false;
+         } else if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
+            ctrlPressed = false;
+         }
+      }
+   }
+
+   private class ShortCutsAdapter extends KeyAdapter {
+
+      @Override
+      public void keyPressed(KeyEvent e) {
+         if (ctrlPressed && e.getKeyCode() == KeyEvent.VK_P) {
+            playListener.actionPerformed(null);
+         } else if (ctrlPressed && e.getKeyCode() == KeyEvent.VK_S) {
+            saveListener.actionPerformed(null);
+         }
+      }
    }
 
    private class EditAdapter extends MouseAdapter implements FocusListener {
