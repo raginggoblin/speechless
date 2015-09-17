@@ -21,23 +21,24 @@ package raging.goblin.speechless.speech;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import lombok.extern.slf4j.Slf4j;
 import marytts.LocalMaryInterface;
 import marytts.MaryInterface;
 import marytts.exceptions.MaryConfigurationException;
 import marytts.exceptions.SynthesisException;
-import marytts.util.Pair;
 import marytts.util.data.audio.AudioPlayer;
 import raging.goblin.speechless.Messages;
 import raging.goblin.speechless.ui.ToastWindow;
@@ -47,50 +48,59 @@ public class Speeker {
 
    private static final Messages MESSAGES = Messages.getInstance();
 
-   private BlockingQueue<Pair<AudioPlayer, Integer>> speechesQueue = new ArrayBlockingQueue<>(100);
-   private Pair<AudioPlayer, Integer> currentlySpeeking;
+   private ExecutorService speechesExecutor = Executors.newSingleThreadExecutor();
+   private volatile boolean speeking;
+   private AudioPlayer currentlySpeeking;
+   private int speechId;
    private Set<EndOfSpeechListener> endOfSpeechListeners = new HashSet<>();
-   private volatile boolean running = false;
    private MaryInterface marytts;
 
    public Speeker() throws MaryConfigurationException {
       initMaryTTS();
-      initSpeeking();
    }
 
    public void stop() {
       log.info("Stopping Speeker");
-      running = false;
+      stopSpeeking();
+      speechesExecutor.shutdown();
    }
 
    public void stopSpeeking() {
-      speechesQueue.clear();
+      speeking = false;
       if (currentlySpeeking != null) {
-         currentlySpeeking.getFirst().cancel();
+         currentlySpeeking.cancel();
       }
    }
 
    public void speek(List<String> speeches) {
-      new Thread("Offering speeches") {
+      speeking = true;
+      speechId = -1;
+      for (String speech : speeches) {
+         if (speeking && !speech.trim().isEmpty()) {
+            speechId++;
+            log.debug("Preparing to speek: " + speech);
 
-         @Override
-         public void run() {
-            int speechId = -1;
-            for (String speech : speeches) {
-               if (!speech.trim().isEmpty()) {
-                  speechId++;
-                  try {
-                     AudioInputStream audio = marytts.generateAudio(speech.toLowerCase());
-                     AudioPlayer player = new AudioPlayer(audio);
-                     speechesQueue.offer(new Pair<>(player, speechId));
-                     log.debug("Preparing to speek: " + speech);
-                  } catch (SynthesisException e) {
-                     log.error("Unable to speek: " + speech, e);
+            speechesExecutor.execute(() -> {
+               try {
+                  AudioInputStream audio = marytts.generateAudio(speech.toLowerCase().trim());
+                  currentlySpeeking = new AudioPlayer(audio);
+                  log.debug("Speeking: " + speech);
+                  currentlySpeeking.start();
+                  currentlySpeeking.join();
+               } catch (Exception e) {
+                  log.error("Unable to speek: " + speech, e);
+                  List<String> words = Arrays.asList(speech.trim().split(" "));
+                  if (words.size() > 1) {
+                     speek(words);
+                  } else if (words.size() == 1) {
+                     ToastWindow.showToast(String.format(MESSAGES.get("offending_word"), words.get(0)), true);
                   }
+               } finally {
+                  notifyEndOfSpeechListeners(speechId);
                }
-            }
-         };
-      }.start();
+            });
+         }
+      }
    }
 
    public void save(String speech, File file) {
@@ -99,8 +109,8 @@ public class Speeker {
          @Override
          public void run() {
             if (!speech.trim().isEmpty()) {
+               ToastWindow toast = ToastWindow.showToast(MESSAGES.get("saving"), false);
                try {
-                  ToastWindow toast = ToastWindow.showToast(MESSAGES.get("saving"), false);
                   AudioInputStream audio = marytts.generateAudio(speech.toLowerCase());
                   AudioSystem.write(audio, AudioFileFormat.Type.WAVE, file);
                   toast.setVisible(false);
@@ -108,6 +118,10 @@ public class Speeker {
                   ToastWindow.showToast(MESSAGES.get("ready_saving"), true);
                } catch (SynthesisException | IOException e) {
                   log.error("Unable to save speech", e);
+                  toast.setVisible(false);
+                  toast.dispose();
+                  SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null,
+                        MESSAGES.get("offending_speech"), MESSAGES.get("error"), JOptionPane.ERROR_MESSAGE));
                }
             }
          }
@@ -125,30 +139,6 @@ public class Speeker {
       String effects = SoundEffect.toMaryTTSString();
       log.debug("Setting effects to: " + effects);
       marytts.setAudioEffects(effects);
-   }
-
-   private void initSpeeking() {
-      Thread dequeueThread = new Thread("Speeking thread") {
-
-         @Override
-         public void run() {
-            while (running) {
-               try {
-                  currentlySpeeking = speechesQueue.poll(1, TimeUnit.SECONDS);
-                  if (currentlySpeeking != null) {
-                     currentlySpeeking.getFirst().start();
-                     currentlySpeeking.getFirst().join();
-                     notifyEndOfSpeechListeners(currentlySpeeking.getSecond());
-                  }
-               } catch (InterruptedException e) {
-                  log.error("Interrupted speeking thread", e);
-               }
-            }
-         }
-      };
-      running = true;
-      dequeueThread.start();
-      log.info("Speeker started");
    }
 
    public void notifyEndOfSpeechListeners(int speechId) {

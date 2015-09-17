@@ -152,9 +152,11 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
    @Override
    public void endOfSpeech(int speechIndex) {
       if (lastOfferedToSpeek == speechIndex) {
-         setParsing(false);
+         SwingUtilities.invokeLater(() -> {
+            setParsing(false);
+            typingField.grabFocus();
+         });
       }
-      typingField.grabFocus();
    }
 
    @Override
