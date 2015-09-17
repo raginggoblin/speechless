@@ -78,28 +78,29 @@ public class Speeker {
       for (String speech : speeches) {
          if (speeking && !speech.trim().isEmpty()) {
             speechId++;
-            log.debug("Preparing to speek: " + speech);
-
-            speechesExecutor.execute(() -> {
-               try {
-                  AudioInputStream audio = marytts.generateAudio(speech.toLowerCase().trim());
-                  currentlySpeeking = new AudioPlayer(audio);
-                  log.debug("Speeking: " + speech);
-                  currentlySpeeking.start();
-                  currentlySpeeking.join();
-               } catch (Exception e) {
-                  log.error("Unable to speek: " + speech, e);
-                  List<String> words = Arrays.asList(speech.trim().split(" "));
-                  if (words.size() > 1) {
-                     speek(words);
-                  } else if (words.size() == 1) {
-                     ToastWindow.showToast(String.format(MESSAGES.get("offending_word"), words.get(0)), true);
-                  }
-               } finally {
-                  notifyEndOfSpeechListeners(speechId);
-               }
-            });
+            speechesExecutor.execute(() -> speek(speech));
          }
+      }
+   }
+
+   private void speek(String speech) {
+      log.debug("Preparing to speek: " + speech);
+      try {
+         AudioInputStream audio = marytts.generateAudio(speech.toLowerCase().trim());
+         currentlySpeeking = new AudioPlayer(audio);
+         log.debug("Speeking: " + speech);
+         currentlySpeeking.start();
+         currentlySpeeking.join();
+      } catch (Exception e) {
+         log.error("Unable to speek: " + speech, e);
+         List<String> words = Arrays.asList(speech.trim().split(" "));
+         if (words.size() > 1) {
+            words.stream().forEach(w -> speek(w));
+         } else if (words.size() == 1) {
+            ToastWindow.showToast(String.format(MESSAGES.get("offending_word"), words.get(0)), true);
+         }
+      } finally {
+         notifyEndOfSpeechListeners(speechId);
       }
    }
 
@@ -141,16 +142,12 @@ public class Speeker {
       marytts.setAudioEffects(effects);
    }
 
-   public void notifyEndOfSpeechListeners(int speechId) {
-      endOfSpeechListeners.stream().forEach(l -> l.endOfSpeech(speechId));
-   }
-
    public void addEndOfSpeechListener(EndOfSpeechListener listener) {
       endOfSpeechListeners.add(listener);
    }
 
-   public void removeEndOfSpeechListener(EndOfSpeechListener listener) {
-      endOfSpeechListeners.remove(listener);
+   private void notifyEndOfSpeechListeners(int speechId) {
+      endOfSpeechListeners.stream().forEach(l -> l.endOfSpeech(speechId));
    }
 
    public interface EndOfSpeechListener {
