@@ -88,7 +88,6 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
    private static final UIProperties PROPERTIES = UIProperties.getInstance();
 
    private Speeker speeker;
-   private int lastOfferedToSpeek;
 
    private JTextField typingField;
    private JTextArea speakingArea;
@@ -105,14 +104,8 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
    private ActionListener playListener = a -> {
       setParsing(true);
-      lastOfferedToSpeek = -1;
       List<String> speeches = Arrays.asList(speakingArea.getText().trim().split("\n"));
-      for (int i = 0; i < speeches.size(); i++) {
-         if (!speeches.get(i).trim().isEmpty()) {
-            lastOfferedToSpeek++;
-         }
-      }
-      if (lastOfferedToSpeek < 0) {
+      if (speeches.size() < 1) {
          setParsing(false);
          typingField.grabFocus();
       } else {
@@ -150,13 +143,11 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
    }
 
    @Override
-   public void endOfSpeech(int speechIndex) {
-      if (lastOfferedToSpeek == speechIndex) {
-         SwingUtilities.invokeLater(() -> {
-            setParsing(false);
-            typingField.grabFocus();
-         });
-      }
+   public void endOfSpeech() {
+      SwingUtilities.invokeLater(() -> {
+         setParsing(false);
+         typingField.grabFocus();
+      });
    }
 
    @Override
@@ -203,7 +194,6 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
          public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                speeker.speek(Arrays.asList(typingField.getText()));
-               lastOfferedToSpeek = -1;
                speakingArea.setText(speakingArea.getText() + "\n" + typingField.getText());
                speakingArea.setCaretPosition(speakingArea.getText().length());
                typingField.setText("");

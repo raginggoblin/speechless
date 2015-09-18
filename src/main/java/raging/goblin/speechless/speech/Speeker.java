@@ -25,8 +25,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -48,10 +46,10 @@ public class Speeker {
 
    private static final Messages MESSAGES = Messages.getInstance();
 
-   private ExecutorService speechesExecutor = Executors.newSingleThreadExecutor();
    private volatile boolean speeking;
+   private boolean isLastSentence;
+   private boolean isLastWord;
    private AudioPlayer currentlySpeeking;
-   private int speechId;
    private Set<EndOfSpeechListener> endOfSpeechListeners = new HashSet<>();
    private MaryInterface marytts;
 
@@ -62,7 +60,6 @@ public class Speeker {
    public void stop() {
       log.info("Stopping Speeker");
       stopSpeeking();
-      speechesExecutor.shutdown();
    }
 
    public void stopSpeeking() {
@@ -73,35 +70,24 @@ public class Speeker {
    }
 
    public void speek(List<String> speeches) {
-      speeking = true;
-      speechId = -1;
-      for (String speech : speeches) {
-         if (speeking && !speech.trim().isEmpty()) {
-            speechId++;
-            speechesExecutor.execute(() -> speek(speech));
-         }
-      }
-   }
+      new Thread() {
 
-   private void speek(String speech) {
-      log.debug("Preparing to speek: " + speech);
-      try {
-         AudioInputStream audio = marytts.generateAudio(speech.toLowerCase().trim());
-         currentlySpeeking = new AudioPlayer(audio);
-         log.debug("Speeking: " + speech);
-         currentlySpeeking.start();
-         currentlySpeeking.join();
-      } catch (Exception e) {
-         log.error("Unable to speek: " + speech, e);
-         List<String> words = Arrays.asList(speech.trim().split(" "));
-         if (words.size() > 1) {
-            words.stream().forEach(w -> speek(w));
-         } else if (words.size() == 1) {
-            ToastWindow.showToast(String.format(MESSAGES.get("offending_word"), words.get(0)), true);
-         }
-      } finally {
-         notifyEndOfSpeechListeners(speechId);
-      }
+         @Override
+         public void run() {
+            speeking = true;
+            isLastSentence = false;
+            isLastWord = false;
+
+            for (int i = 0; i < speeches.size(); i++) {
+               if (i == speeches.size() - 1) {
+                  isLastSentence = true;
+               }
+               if (speeking) {
+                  speek(speeches.get(i).trim().toLowerCase());
+               }
+            }
+         };
+      }.start();
    }
 
    public void save(String speech, File file) {
@@ -146,12 +132,60 @@ public class Speeker {
       endOfSpeechListeners.add(listener);
    }
 
-   private void notifyEndOfSpeechListeners(int speechId) {
-      endOfSpeechListeners.stream().forEach(l -> l.endOfSpeech(speechId));
+   private void speek(String speech) {
+      log.debug("Preparing to speek: " + speech);
+
+      try {
+         executeSpeaking(speech);
+
+      } catch (Exception e) {
+         log.error("Unable to speek: " + speech, e);
+         List<String> words = Arrays.asList(speech.split(" "));
+         if (words.size() > 1) {
+            speekWordsSeparately(words);
+         } else if (words.size() == 1) {
+            ToastWindow.showToast(String.format(MESSAGES.get("offending_word"), words.get(0)), true);
+         }
+
+      } finally {
+         if (readyWithSpeeking()) {
+            notifyEndOfSpeechListeners();
+         }
+      }
+   }
+
+   private void speekWordsSeparately(List<String> words) {
+      if (isLastSentence) {
+         isLastSentence = false;
+         for (int i = 0; i < words.size(); i++) {
+            if (i == words.size() - 1) {
+               isLastWord = true;
+            }
+            speek(words.get(i));
+         }
+
+      } else {
+         words.stream().forEach(w -> speek(w));
+      }
+   }
+
+   private void executeSpeaking(String speech) throws SynthesisException, InterruptedException {
+      AudioInputStream audio = marytts.generateAudio(speech);
+      currentlySpeeking = new AudioPlayer(audio);
+      log.debug("Speeking: " + speech);
+      currentlySpeeking.start();
+      currentlySpeeking.join();
+   }
+
+   private boolean readyWithSpeeking() {
+      return isLastSentence || isLastWord;
+   }
+
+   private void notifyEndOfSpeechListeners() {
+      endOfSpeechListeners.stream().forEach(l -> l.endOfSpeech());
    }
 
    public interface EndOfSpeechListener {
-
-      void endOfSpeech(int speechId);
+      void endOfSpeech();
    }
 }
