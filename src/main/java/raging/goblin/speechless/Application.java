@@ -85,6 +85,24 @@ public class Application {
 
    private static void loadLaf(String[] args) {
       try {
+         if (args.length >= 1) {
+            log.debug("Setting look and feel manually to " + args[0]);
+            switch (args[0].toLowerCase()) {
+            case "metal":
+               UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+               return;
+            case "nimbus":
+               UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+               return;
+            case "motif":
+               UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
+               return;
+            case "gtk":
+               UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+               return;
+            }
+         }
+
          boolean isGtk = tryLinuxLaf();
          if (!isGtk) {
             if (UIManager.getSystemLookAndFeelClassName().contains("Metal")) {
