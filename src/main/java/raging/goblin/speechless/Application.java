@@ -103,32 +103,16 @@ public class Application {
             }
          }
 
-         boolean isGtk = tryLinuxLaf();
-         if (!isGtk) {
-            if (UIManager.getSystemLookAndFeelClassName().contains("Metal")) {
-               setNimbusLaf();
-            } else {
-               UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-               log.debug("Setting system look and feel");
-            }
+         if (UIManager.getSystemLookAndFeelClassName().contains("Metal")) {
+            setNimbusLaf();
+         } else {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            log.debug("Setting system look and feel: " + UIManager.getSystemLookAndFeelClassName());
          }
       } catch (Exception e) {
          log.error("Could not set look and feel");
          log.debug(e.getMessage(), e);
       }
-   }
-
-   private static boolean tryLinuxLaf() throws ClassNotFoundException, InstantiationException, IllegalAccessException,
-         UnsupportedLookAndFeelException {
-      for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-         if ("GTK+".equals(info.getName())) {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-            log.debug("Setting GTK+ look and feel");
-            return true;
-         }
-      }
-      log.debug("Not able to set GTK+ look and feel");
-      return false;
    }
 
    private static void setNimbusLaf() throws ClassNotFoundException, InstantiationException, IllegalAccessException,

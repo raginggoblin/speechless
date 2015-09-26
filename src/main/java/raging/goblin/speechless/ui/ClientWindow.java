@@ -282,6 +282,11 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       helpMenu.setMnemonic(KeyEvent.VK_H);
       menuBar.add(helpMenu);
 
+      JMenuItem helpItem = new JMenuItem(MESSAGES.get("help"));
+      helpItem.setMnemonic(KeyEvent.VK_F1);
+      helpItem.addActionListener(a -> HelpBrowser.getInstance().setVisible(true));
+      helpMenu.add(helpItem);
+
       return menuBar;
    }
 
