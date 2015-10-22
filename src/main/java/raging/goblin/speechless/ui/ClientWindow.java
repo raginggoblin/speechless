@@ -40,11 +40,13 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -93,7 +95,9 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
    private JTextArea speakingArea;
    private JButton saveButton;
    private JButton playButton;
+   private JMenuItem playMenuItem;
    private JButton stopButton;
+   private JMenuItem stopMenuItem;
    private JPanel parseTextButtonPanel;
 
    private boolean trayMenuVisible = false;
@@ -111,6 +115,11 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       } else {
          speeker.speek(speeches);
       }
+   };
+
+   private ActionListener stopListener = a -> {
+      speeker.stopSpeeking();
+      setParsing(false);
    };
 
    private ActionListener saveListener = a -> {
@@ -221,10 +230,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
       stopButton = new JButton(Icon.getIcon("/icons/control_stop.png"));
       stopButton.setToolTipText(MESSAGES.get("stop_tooltip"));
-      stopButton.addActionListener(a -> {
-         speeker.stopSpeeking();
-         setParsing(false);
-      });
+      stopButton.addActionListener(stopListener);
 
       addGlobalKeyAdapters(typingField, speakingArea, saveButton, playButton);
 
@@ -238,6 +244,59 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       fileMenu.setMnemonic(KeyEvent.VK_F);
       menuBar.add(fileMenu);
 
+      JMenuItem openFileItem = new JMenuItem(MESSAGES.get("open_file_menu"));
+      openFileItem.setMnemonic(KeyEvent.VK_O);
+      openFileItem.addActionListener(a -> {
+         JFileChooser chooser = new JFileChooser();
+         chooser.setDialogTitle(MESSAGES.get("open_file"));
+         chooser.setFileFilter(new TxtFilter());
+         int returnValue = chooser.showOpenDialog(ClientWindow.this);
+         if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+            try {
+               List<String> allLines = Files.readAllLines(file.toPath());
+               speakingArea.setText(allLines.stream().collect(Collectors.joining("\n")));
+            } catch (Exception e) {
+               JOptionPane.showMessageDialog(ClientWindow.this, MESSAGES.get("open_file_error"), MESSAGES.get("error"),
+                     JOptionPane.ERROR_MESSAGE);
+               log.error("Unable to open text file", e);
+            }
+         }
+      });
+      fileMenu.add(openFileItem);
+
+      JMenuItem saveFileItem = new JMenuItem(MESSAGES.get("save_file_menu"));
+      saveFileItem.setMnemonic(KeyEvent.VK_S);
+      saveFileItem.addActionListener(a -> {
+         JFileChooser chooser = new JFileChooser();
+         chooser.setDialogTitle(MESSAGES.get("save_file"));
+         chooser.setFileFilter(new TxtFilter());
+         int returnValue = chooser.showOpenDialog(ClientWindow.this);
+         if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File file = chooser.getSelectedFile();
+            if (!file.getName().endsWith("txt") || !file.getName().endsWith("TXT")) {
+               file = new File(file.getAbsolutePath() + ".txt");
+            }
+            try {
+               Files.write(file.toPath(), speakingArea.getText().getBytes());
+            } catch (Exception e) {
+               JOptionPane.showMessageDialog(ClientWindow.this, MESSAGES.get("save_file_error"), MESSAGES.get("error"),
+                     JOptionPane.ERROR_MESSAGE);
+               log.error("Unable to save text file", e);
+            }
+         }
+      });
+      fileMenu.add(saveFileItem);
+
+      fileMenu.addSeparator();
+
+      JMenuItem exportItem = new JMenuItem(MESSAGES.get("export_menu"));
+      exportItem.setMnemonic(KeyEvent.VK_E);
+      exportItem.addActionListener(saveListener);
+      fileMenu.add(exportItem);
+
+      fileMenu.addSeparator();
+
       JMenuItem quitItem = new JMenuItem(MESSAGES.get("quit"));
       quitItem.setMnemonic(KeyEvent.VK_Q);
       quitItem.addActionListener(a -> {
@@ -245,9 +304,9 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       });
       fileMenu.add(quitItem);
 
-      JMenu editMenu = new JMenu(MESSAGES.get("edit"));
-      editMenu.setMnemonic(KeyEvent.VK_E);
-      menuBar.add(editMenu);
+      JMenu configureMenu = new JMenu(MESSAGES.get("configure"));
+      configureMenu.setMnemonic(KeyEvent.VK_C);
+      menuBar.add(configureMenu);
 
       JMenuItem configureVoiceItem = new JMenuItem(MESSAGES.get("configure_voice"));
       configureVoiceItem.setMnemonic(KeyEvent.VK_V);
@@ -264,7 +323,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
             }
          }
       });
-      editMenu.add(configureVoiceItem);
+      configureMenu.add(configureVoiceItem);
 
       JMenuItem configureGuiItem = new JMenuItem(MESSAGES.get("configure_gui"));
       configureGuiItem.setMnemonic(KeyEvent.VK_G);
@@ -276,7 +335,21 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
                   MESSAGES.get("restart_title"), JOptionPane.INFORMATION_MESSAGE);
          }
       });
-      editMenu.add(configureGuiItem);
+      configureMenu.add(configureGuiItem);
+
+      JMenu playMenu = new JMenu(MESSAGES.get("play"));
+      playMenu.setMnemonic(KeyEvent.VK_P);
+      menuBar.add(playMenu);
+
+      playMenuItem = new JMenuItem(MESSAGES.get("play"));
+      playMenuItem.setMnemonic(KeyEvent.VK_L);
+      playMenuItem.addActionListener(playListener);
+      playMenu.add(playMenuItem);
+
+      stopMenuItem = new JMenuItem(MESSAGES.get("stop"));
+      stopMenuItem.setMnemonic(KeyEvent.VK_T);
+      stopMenuItem.addActionListener(stopListener);
+      playMenu.add(stopMenuItem);
 
       JMenu helpMenu = new JMenu(MESSAGES.get("help"));
       helpMenu.setMnemonic(KeyEvent.VK_H);
@@ -286,6 +359,11 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       helpItem.setMnemonic(KeyEvent.VK_F1);
       helpItem.addActionListener(a -> HelpBrowser.getInstance().setVisible(true));
       helpMenu.add(helpItem);
+
+      JMenuItem aboutItem = new JMenuItem(MESSAGES.get("about"));
+      aboutItem.setMnemonic(KeyEvent.VK_A);
+      aboutItem.addActionListener(a -> new AboutWindow(ClientWindow.this).setVisible(true));
+      helpMenu.add(aboutItem);
 
       return menuBar;
    }
@@ -340,7 +418,9 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       speakingArea.setEnabled(!parsing);
       saveButton.setEnabled(!parsing);
       playButton.setVisible(!parsing);
+      playMenuItem.setEnabled(!parsing);
       stopButton.setVisible(parsing);
+      stopMenuItem.setEnabled(parsing);
       if (parsing) {
          parseTextButtonPanel.remove(playButton);
          parseTextButtonPanel.add(stopButton);
@@ -572,6 +652,19 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       @Override
       public String getDescription() {
          return MESSAGES.get("wav");
+      }
+   }
+
+   private class TxtFilter extends FileFilter {
+
+      @Override
+      public boolean accept(File file) {
+         return file.isDirectory() || file.getName().endsWith("txt") || file.getName().endsWith("TXT");
+      }
+
+      @Override
+      public String getDescription() {
+         return MESSAGES.get("txt");
       }
    }
 }
