@@ -244,7 +244,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       fileMenu.setMnemonic(KeyEvent.VK_F);
       menuBar.add(fileMenu);
 
-      JMenuItem openFileItem = new JMenuItem(MESSAGES.get("open_file_menu"));
+      JMenuItem openFileItem = new JMenuItem(MESSAGES.get("open_file_menu"), Icon.getIcon("/icons/folder_page.png"));
       openFileItem.setMnemonic(KeyEvent.VK_O);
       openFileItem.addActionListener(a -> {
          JFileChooser chooser = new JFileChooser();
@@ -265,7 +265,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       });
       fileMenu.add(openFileItem);
 
-      JMenuItem saveFileItem = new JMenuItem(MESSAGES.get("save_file_menu"));
+      JMenuItem saveFileItem = new JMenuItem(MESSAGES.get("save_file_menu"), Icon.getIcon("/icons/page_save.png"));
       saveFileItem.setMnemonic(KeyEvent.VK_S);
       saveFileItem.addActionListener(a -> {
          JFileChooser chooser = new JFileChooser();
@@ -290,14 +290,14 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
       fileMenu.addSeparator();
 
-      JMenuItem exportItem = new JMenuItem(MESSAGES.get("export_menu"));
+      JMenuItem exportItem = new JMenuItem(MESSAGES.get("export_menu"), Icon.getIcon("/icons/save.png"));
       exportItem.setMnemonic(KeyEvent.VK_E);
       exportItem.addActionListener(saveListener);
       fileMenu.add(exportItem);
 
       fileMenu.addSeparator();
 
-      JMenuItem quitItem = new JMenuItem(MESSAGES.get("quit"));
+      JMenuItem quitItem = new JMenuItem(MESSAGES.get("quit"), Icon.getIcon("/icons/cross.png"));
       quitItem.setMnemonic(KeyEvent.VK_Q);
       quitItem.addActionListener(a -> {
          System.exit(0);
@@ -308,7 +308,8 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       configureMenu.setMnemonic(KeyEvent.VK_C);
       menuBar.add(configureMenu);
 
-      JMenuItem configureVoiceItem = new JMenuItem(MESSAGES.get("configure_voice"));
+      JMenuItem configureVoiceItem = new JMenuItem(MESSAGES.get("configure_voice"),
+            Icon.getIcon("/icons/comment_edit.png"));
       configureVoiceItem.setMnemonic(KeyEvent.VK_V);
       configureVoiceItem.addActionListener(a -> {
          VoiceConfigurationDialog dialog = new VoiceConfigurationDialog(ClientWindow.this);
@@ -325,7 +326,8 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       });
       configureMenu.add(configureVoiceItem);
 
-      JMenuItem configureGuiItem = new JMenuItem(MESSAGES.get("configure_gui"));
+      JMenuItem configureGuiItem = new JMenuItem(MESSAGES.get("configure_gui"),
+            Icon.getIcon("/icons/application_form_edit.png"));
       configureGuiItem.setMnemonic(KeyEvent.VK_G);
       configureGuiItem.addActionListener(a -> {
          GuiConfigDialog dialog = new GuiConfigDialog(ClientWindow.this);
@@ -341,12 +343,12 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       playMenu.setMnemonic(KeyEvent.VK_P);
       menuBar.add(playMenu);
 
-      playMenuItem = new JMenuItem(MESSAGES.get("play"));
+      playMenuItem = new JMenuItem(MESSAGES.get("play"), Icon.getIcon("/icons/control_play.png"));
       playMenuItem.setMnemonic(KeyEvent.VK_L);
       playMenuItem.addActionListener(playListener);
       playMenu.add(playMenuItem);
 
-      stopMenuItem = new JMenuItem(MESSAGES.get("stop"));
+      stopMenuItem = new JMenuItem(MESSAGES.get("stop"), Icon.getIcon("/icons/control_stop.png"));
       stopMenuItem.setMnemonic(KeyEvent.VK_T);
       stopMenuItem.addActionListener(stopListener);
       playMenu.add(stopMenuItem);
@@ -355,12 +357,12 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       helpMenu.setMnemonic(KeyEvent.VK_H);
       menuBar.add(helpMenu);
 
-      JMenuItem helpItem = new JMenuItem(MESSAGES.get("help"));
+      JMenuItem helpItem = new JMenuItem(MESSAGES.get("help"), Icon.getIcon("/icons/help.png"));
       helpItem.setMnemonic(KeyEvent.VK_F1);
       helpItem.addActionListener(a -> HelpBrowser.getInstance().setVisible(true));
       helpMenu.add(helpItem);
 
-      JMenuItem aboutItem = new JMenuItem(MESSAGES.get("about"));
+      JMenuItem aboutItem = new JMenuItem(MESSAGES.get("about"), Icon.getIcon("/icons/star.png"));
       aboutItem.setMnemonic(KeyEvent.VK_A);
       aboutItem.addActionListener(a -> new AboutWindow(ClientWindow.this).setVisible(true));
       helpMenu.add(aboutItem);
