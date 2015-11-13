@@ -29,22 +29,21 @@ import raging.goblin.speechless.Messages;
 
 public class SplashScreen extends JFrame {
 
-	private static final Messages MESSAGES = Messages.getInstance();
+   private static final Messages MESSAGES = Messages.getInstance();
 
-	private JLabel messageLabel = new JLabel(MESSAGES.get("loading") + "...");
+   private JLabel messageLabel = new JLabel(MESSAGES.get("loading") + "...");
 
-	public SplashScreen() {
+   public SplashScreen() {
+      setResizable(false);
+      setAlwaysOnTop(true);
+      setUndecorated(true);
+      setSize(400, 250);
 
-		setResizable(false);
-		setAlwaysOnTop(true);
-		setUndecorated(true);
-		setSize(400, 250);
+      messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+      getContentPane().add(messageLabel, BorderLayout.CENTER);
+   }
 
-		messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		getContentPane().add(messageLabel, BorderLayout.CENTER);
-	}
-
-	public void setMessage(String message) {
-		messageLabel.setText(message);
-	}
+   public void setMessage(String message) {
+      messageLabel.setText(message);
+   }
 }

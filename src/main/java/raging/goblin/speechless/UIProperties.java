@@ -29,7 +29,7 @@ public class UIProperties {
 
    public static final boolean DEFAULT_SPLASH_SCREEN_ENABLED = true;
    public static final boolean DEFAULT_WELCOME_SCREEN_ENABLED = true;
-   public static final boolean DEFAULT_SYSTRAY_ENABLED = true;
+   public static final boolean DEFAULT_START_MINIMIZED = false;
    public static final String DEFAULT_VOICE = "DFKI_OBADIAH";
    public static final int DEFAULT_DOUBLE_CLICK_DELAY = 250;
    public static final int DEFAULT_TOAST_TIME = 3000;
@@ -39,7 +39,7 @@ public class UIProperties {
    private static final String KEY_NATIVE_HOOK_KEY_CODES = "nativehookkeycodes";
    private static final String KEY_SPLASH_SCREEN_ENABLED = "splashscreenenabled";
    private static final String KEY_WELCOME_SCREEN_ENABLED = "welcomescreenenabled";
-   private static final String KEY_SYSTRAY_ENABLED = "systrayenabled";
+   private static final String KEY_START_MINIMIZED = "startminimized";
    private static final String KEY_VOICE = "voice";
    private static final String KEY_DOUBLE_CLICK_DELAY = "doubleclickdelay";
    private static final String KEY_TOAST_TIME = "toasttime";
@@ -94,12 +94,12 @@ public class UIProperties {
       return userPreferences.getBoolean(KEY_WELCOME_SCREEN_ENABLED, DEFAULT_WELCOME_SCREEN_ENABLED);
    }
 
-   public void setSystrayEnabled(boolean systrayEnabled) {
-      userPreferences.putBoolean(KEY_SYSTRAY_ENABLED, systrayEnabled);
+   public void setStartMinimized(boolean startMinimized) {
+      userPreferences.putBoolean(KEY_START_MINIMIZED, startMinimized);
    }
 
-   public boolean isSystrayEnabled() {
-      return userPreferences.getBoolean(KEY_SYSTRAY_ENABLED, DEFAULT_SYSTRAY_ENABLED);
+   public boolean isStartMinimized() {
+      return userPreferences.getBoolean(KEY_START_MINIMIZED, DEFAULT_START_MINIMIZED);
    }
 
    public boolean isNativeHookEnabled() {

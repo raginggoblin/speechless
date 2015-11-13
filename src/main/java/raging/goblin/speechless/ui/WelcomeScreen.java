@@ -49,7 +49,7 @@ public class WelcomeScreen extends JFrame {
       setResizable(false);
       setAlwaysOnTop(true);
       setUndecorated(true);
-      setSize(500, 350);
+      setSize(650, 500);
 
       getContentPane().add(new JLabel(), BorderLayout.EAST);
       getContentPane().add(new JLabel(), BorderLayout.WEST);

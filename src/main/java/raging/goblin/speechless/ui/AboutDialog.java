@@ -29,13 +29,12 @@ import javax.swing.JPanel;
 
 import raging.goblin.speechless.Messages;
 
-public class AboutWindow extends JDialog {
+public class AboutDialog extends JDialog {
 
    private static final Messages MESSAGES = Messages.getInstance();
 
-   public AboutWindow(Frame parent) {
-      super(parent);
-      setModal(true);
+   public AboutDialog(Frame parent) {
+      super(parent, true);
       setDefaultCloseOperation(DISPOSE_ON_CLOSE);
       setTitle(MESSAGES.get("client_window_title"));
 
@@ -44,7 +43,7 @@ public class AboutWindow extends JDialog {
 
       JPanel topPanel = new JPanel();
       getContentPane().add(topPanel, BorderLayout.NORTH);
-      JLabel iconLabel = new JLabel(new ImageIcon(AboutWindow.class.getResource("/icons/sound.png")));
+      JLabel iconLabel = new JLabel(new ImageIcon(AboutDialog.class.getResource("/icons/sound.png")));
       topPanel.add(iconLabel);
       topPanel.add(new JLabel(MESSAGES.get("about_title")));
 

@@ -19,19 +19,19 @@
 
 package raging.goblin.speechless;
 
+import java.awt.Frame;
 import java.util.Locale;
 
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import marytts.exceptions.MaryConfigurationException;
-
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import marytts.exceptions.MaryConfigurationException;
 import raging.goblin.speechless.speech.Speeker;
 import raging.goblin.speechless.ui.ClientWindow;
 import raging.goblin.speechless.ui.ScreenPositioner;
@@ -55,7 +55,7 @@ public class Application {
       try {
          Speeker speeker = new Speeker();
          Runtime.getRuntime().addShutdownHook(new ShutdownHook(speeker));
-         new ClientWindow(speeker);
+         ClientWindow clientWindow = new ClientWindow(speeker);
          splashScreen.setVisible(false);
          splashScreen.dispose();
          if (PROPERTIES.isWelcomeScreenEnabled()) {
@@ -63,7 +63,10 @@ public class Application {
             ScreenPositioner.centerOnScreen(welcomeScreen);
             welcomeScreen.setVisible(true);
          }
-
+         clientWindow.setVisible(true);
+         if (PROPERTIES.isStartMinimized()) {
+            clientWindow.setExtendedState(Frame.ICONIFIED);
+         }
       } catch (MaryConfigurationException e) {
          log.error("Unable to start Speeker", e);
          splashScreen.setMessage(MESSAGES.get("initialization_error"));

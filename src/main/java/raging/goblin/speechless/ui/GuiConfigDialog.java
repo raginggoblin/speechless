@@ -31,17 +31,16 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
-import lombok.Getter;
-
 import org.jnativehook.keyboard.NativeKeyEvent;
-
-import raging.goblin.speechless.Messages;
-import raging.goblin.speechless.UIProperties;
 
 import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
+
+import lombok.Getter;
+import raging.goblin.speechless.Messages;
+import raging.goblin.speechless.UIProperties;
 
 public class GuiConfigDialog extends JDialog {
 
@@ -53,7 +52,8 @@ public class GuiConfigDialog extends JDialog {
    private int[] nativeHookKeyCodes = PROPERTIES.getNativeHookKeyCodes();
 
    private JCheckBox chckbxSplashScreenEnabled;
-   private JCheckBox chckbxSystrayEnabled;
+   private JCheckBox chckbxWelcomeScreenEnabled;
+   private JCheckBox chckbxStartMinimized;
    private JLabel nativeHookLabel;
 
    public GuiConfigDialog(JFrame parent) {
@@ -69,18 +69,23 @@ public class GuiConfigDialog extends JDialog {
       JPanel configPanel = new JPanel();
       configPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
       getContentPane().add(configPanel, BorderLayout.CENTER);
-      configPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow"),
-            ColumnSpec.decode("default:grow"), ColumnSpec.decode("right:default"), ColumnSpec.decode("right:default"),
-            ColumnSpec.decode("right:default") }, new RowSpec[] { FormFactory.DEFAULT_ROWSPEC,
-            FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
-            FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
-            FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
-            FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
-            FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
-            FormFactory.DEFAULT_ROWSPEC, RowSpec.decode("default:grow"), }));
+      configPanel
+            .setLayout(
+                  new FormLayout(
+                        new ColumnSpec[] { ColumnSpec.decode("default:grow"), ColumnSpec.decode("default:grow"),
+                              ColumnSpec.decode("right:default"), ColumnSpec.decode("right:default"), ColumnSpec
+                                    .decode("right:default") },
+            new RowSpec[] { FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                  FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
+                  FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                  FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
+                  FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                  FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
+                  FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                  RowSpec.decode("default:grow"), }));
 
-      StringSeparator spashScreenSeparator = new StringSeparator(MESSAGES.get("splash_screen"));
-      configPanel.add(spashScreenSeparator, "1, 3, 5, 1");
+      StringSeparator splashScreenSeparator = new StringSeparator(MESSAGES.get("splash_screen"));
+      configPanel.add(splashScreenSeparator, "1, 3, 5, 1");
 
       JLabel lblSplashScreenEnabled = new JLabel(MESSAGES.get("enabled"));
       configPanel.add(lblSplashScreenEnabled, "3, 5");
@@ -89,24 +94,34 @@ public class GuiConfigDialog extends JDialog {
       chckbxSplashScreenEnabled.setSelected(PROPERTIES.isSplashScreenEnabled());
       configPanel.add(chckbxSplashScreenEnabled, "4, 5");
 
-      StringSeparator systraySeparator = new StringSeparator(MESSAGES.get("system_tray_icon"));
-      configPanel.add(systraySeparator, "1, 7, 5, 1");
+      StringSeparator welcomeScreenSeparator = new StringSeparator(MESSAGES.get("welcome_screen"));
+      configPanel.add(welcomeScreenSeparator, "1, 7, 5, 1");
 
-      JLabel lblSystrayEnabled = new JLabel(MESSAGES.get("enabled"));
-      configPanel.add(lblSystrayEnabled, "3, 9");
+      JLabel lblShowWelcomeScreen = new JLabel(MESSAGES.get("enabled"));
+      configPanel.add(lblShowWelcomeScreen, "3, 9");
 
-      chckbxSystrayEnabled = new JCheckBox();
-      chckbxSystrayEnabled.setSelected(PROPERTIES.isSystrayEnabled());
-      configPanel.add(chckbxSystrayEnabled, "4, 9");
+      chckbxWelcomeScreenEnabled = new JCheckBox();
+      chckbxWelcomeScreenEnabled.setSelected(PROPERTIES.isWelcomeScreenEnabled());
+      configPanel.add(chckbxWelcomeScreenEnabled, "4, 9");
+
+      StringSeparator startMinimizedSeparator = new StringSeparator(MESSAGES.get("start_minimized"));
+      configPanel.add(startMinimizedSeparator, "1, 11, 5, 1");
+
+      JLabel lblStartMinized = new JLabel(MESSAGES.get("enabled"));
+      configPanel.add(lblStartMinized, "3, 13");
+
+      chckbxStartMinimized = new JCheckBox();
+      chckbxStartMinimized.setSelected(PROPERTIES.isStartMinimized());
+      configPanel.add(chckbxStartMinimized, "4, 13");
 
       StringSeparator nativeHookSeparator = new StringSeparator(MESSAGES.get("native_hook"));
-      configPanel.add(nativeHookSeparator, "1, 11, 5, 1");
+      configPanel.add(nativeHookSeparator, "1, 15, 5, 1");
 
       nativeHookLabel = new JLabel(getNativeHookText(nativeHookKeyCodes));
-      configPanel.add(nativeHookLabel, "2, 15");
+      configPanel.add(nativeHookLabel, "2, 19");
 
       JButton btnRecordNativeHook = new JButton(Icon.getIcon("/icons/pencil.png"));
-      configPanel.add(btnRecordNativeHook, "3, 15, 2, 1, fill, default");
+      configPanel.add(btnRecordNativeHook, "3, 19, 2, 1, fill, default");
       btnRecordNativeHook.addActionListener(e -> {
          RecordNativeHookDialog dialog = new RecordNativeHookDialog(parent);
          dialog.setVisible(true);
@@ -121,13 +136,15 @@ public class GuiConfigDialog extends JDialog {
    private void initActionsPanel() {
       JPanel actionPanel = new JPanel();
       getContentPane().add(actionPanel, BorderLayout.SOUTH);
-      FormLayout layout = new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow"),
-            FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC,
-            FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("max(40dlu;default)"),
-            FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC,
-            ColumnSpec.decode("max(40dlu;default)"), FormFactory.RELATED_GAP_COLSPEC,
-            ColumnSpec.decode("max(5dlu;default)"), }, new RowSpec[] { FormFactory.DEFAULT_ROWSPEC,
-            FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("max(5dlu;default)"), });
+      FormLayout layout = new FormLayout(
+            new ColumnSpec[] { ColumnSpec.decode("default:grow"), FormFactory.RELATED_GAP_COLSPEC,
+                  FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC,
+                  FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("max(40dlu;default)"),
+                  FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC,
+                  ColumnSpec.decode("max(40dlu;default)"), FormFactory.RELATED_GAP_COLSPEC,
+                  ColumnSpec.decode("max(5dlu;default)"), },
+            new RowSpec[] { FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC,
+                  RowSpec.decode("max(5dlu;default)"), });
       actionPanel.setLayout(layout);
 
       JButton btnCancel = new JButton(MESSAGES.get("cancel"));
@@ -145,7 +162,8 @@ public class GuiConfigDialog extends JDialog {
 
    private void saveConfiguration() {
       PROPERTIES.setSplashScreenEnabled(chckbxSplashScreenEnabled.isSelected());
-      PROPERTIES.setSystrayEnabled(chckbxSystrayEnabled.isSelected());
+      PROPERTIES.setWelcomeScreenEnabled(chckbxWelcomeScreenEnabled.isSelected());
+      PROPERTIES.setStartMinimized(chckbxStartMinimized.isSelected());
       PROPERTIES.setNativeHookEnabled(nativeHookKeyCodes.length > 0);
       PROPERTIES.setNativeHookKeyCodes(nativeHookKeyCodes);
    }

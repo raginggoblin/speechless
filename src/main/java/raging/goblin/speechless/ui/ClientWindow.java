@@ -22,10 +22,9 @@ package raging.goblin.speechless.ui;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.GridLayout;
-import java.awt.SystemTray;
 import java.awt.Toolkit;
-import java.awt.TrayIcon;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -37,7 +36,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -49,7 +47,6 @@ import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -65,19 +62,17 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.JTextComponent;
-
-import lombok.extern.slf4j.Slf4j;
-import marytts.exceptions.MaryConfigurationException;
 
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
+import lombok.extern.slf4j.Slf4j;
+import marytts.exceptions.MaryConfigurationException;
 import raging.goblin.speechless.Messages;
 import raging.goblin.speechless.UIProperties;
 import raging.goblin.speechless.speech.Speeker;
@@ -100,11 +95,8 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
    private JMenuItem stopMenuItem;
    private JPanel parseTextButtonPanel;
 
-   private boolean trayMenuVisible = false;
    private boolean shiftPressed = false;
    private boolean ctrlPressed = false;
-   private Timer clickTimer;
-   private JPopupMenu systrayMenu;
 
    private ActionListener playListener = a -> {
       setParsing(true);
@@ -141,14 +133,10 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       this.speeker = speeker;
       speeker.addEndOfSpeechListener(this);
       initGui();
-      if (SystemTray.isSupported() && PROPERTIES.isSystrayEnabled()) {
-         loadSystray();
-      }
       if (PROPERTIES.isNativeHookEnabled()) {
          initNativeHook();
       }
-      setDefaultCloseOperation(PROPERTIES.isSystrayEnabled() ? DISPOSE_ON_CLOSE : EXIT_ON_CLOSE);
-      setVisible(!PROPERTIES.isSystrayEnabled());
+      setDefaultCloseOperation(EXIT_ON_CLOSE);
    }
 
    @Override
@@ -364,7 +352,7 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
       JMenuItem aboutItem = new JMenuItem(MESSAGES.get("about"), Icon.getIcon("/icons/star.png"));
       aboutItem.setMnemonic(KeyEvent.VK_A);
-      aboutItem.addActionListener(a -> new AboutWindow(ClientWindow.this).setVisible(true));
+      aboutItem.addActionListener(a -> new AboutDialog(ClientWindow.this).setVisible(true));
       helpMenu.add(aboutItem);
 
       return menuBar;
@@ -392,27 +380,34 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
 
             @Override
             public void nativeKeyPressed(NativeKeyEvent e) {
-               if (PROPERTIES.isSystrayEnabled()) {
-                  if (Arrays.stream(PROPERTIES.getNativeHookKeyCodes()).anyMatch(new Integer(e.getKeyCode())::equals)) {
-                     pressedKeyCodes.add(e.getKeyCode());
-                  }
-                  if (pressedKeyCodes.size() == 3) {
-                     pressedKeyCodes.clear();
-                     SwingUtilities.invokeLater(new Runnable() {
+               if (Arrays.stream(PROPERTIES.getNativeHookKeyCodes()).anyMatch(new Integer(e.getKeyCode())::equals)) {
+                  pressedKeyCodes.add(e.getKeyCode());
+               }
+               if (pressedKeyCodes.size() == 3) {
+                  pressedKeyCodes.clear();
+                  SwingUtilities.invokeLater(new Runnable() {
 
-                        @Override
-                        public void run() {
-                           setVisible(!isVisible());
+                     @Override
+                     public void run() {
+                        if (getExtendedState() == Frame.ICONIFIED) {
+                           setExtendedState(Frame.NORMAL);
+                        } else {
+                           setExtendedState(Frame.ICONIFIED);
                         }
-                     });
-                  }
+                     }
+                  });
                }
             }
          });
-      } catch (NativeHookException ex) {
+      } catch (
+
+      NativeHookException ex)
+
+      {
          log.warn("Unable to use native hook, disabling it");
          PROPERTIES.setNativeHookEnabled(false);
       }
+
    }
 
    private void setParsing(boolean parsing) {
@@ -432,43 +427,11 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       }
    }
 
-   private void loadSystray() {
-      try {
-         SystemTray tray = SystemTray.getSystemTray();
-         TrayIcon trayIcon = new TrayIcon(new ImageIcon(getClass().getResource("/icons/sound.png")).getImage());
-         trayIcon.setImageAutoSize(true);
-         trayIcon.addMouseListener(new TrayIconMouseListener());
-         tray.add(trayIcon);
-         systrayMenu = createSystrayMenu();
-      } catch (Exception e) {
-         log.warn("TrayIcon could not be added.", e);
-         PROPERTIES.setSystrayEnabled(false);
-      }
-   }
-
    private void addGlobalKeyAdapters(Component... components) {
       Arrays.stream(components).forEach(c -> {
          c.addKeyListener(new SpecialKeyAdapter());
          c.addKeyListener(new ShortCutsAdapter());
       });
-   }
-
-   private JPopupMenu createSystrayMenu() {
-      JPopupMenu menu = new JPopupMenu();
-
-      JMenuItem showGuiItem = new JMenuItem(MESSAGES.get("show_gui"),
-            Icon.getIcon("/icons/application_form_magnify.png"));
-      showGuiItem.addActionListener(e -> {
-         trayMenuVisible = false;
-         setVisible(true);
-      });
-      menu.add(showGuiItem);
-
-      JMenuItem quitItem = new JMenuItem(MESSAGES.get("quit"), Icon.getIcon("/icons/cross.png"));
-      quitItem.addActionListener(e -> System.exit(0));
-      menu.add(quitItem);
-
-      return menu;
    }
 
    private class SpecialKeyAdapter extends KeyAdapter {
@@ -593,54 +556,6 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       @Override
       public void focusLost(FocusEvent e) {
          menu.setVisible(false);
-      }
-   }
-
-   private class TrayIconMouseListener implements MouseListener {
-
-      @Override
-      public void mouseClicked(MouseEvent e) {
-         // Left button
-         if (e.getButton() != MouseEvent.BUTTON3) {
-            trayMenuVisible = false;
-            if (e.getClickCount() == 1) {
-               // Single click - show menu
-               clickTimer = new Timer(PROPERTIES.getDoubleClickDelay(), ae -> {
-                  trayMenuVisible = !trayMenuVisible;
-                  systrayMenu.setLocation(e.getXOnScreen() + 1, e.getYOnScreen() + 1);
-                  systrayMenu.setInvoker(systrayMenu);
-                  systrayMenu.setVisible(trayMenuVisible);
-               });
-               clickTimer.setRepeats(false);
-               clickTimer.start();
-            } else if (e.getClickCount() >= 2) {
-               // Double click - show/hide gui
-               clickTimer.stop();
-               setVisible(!isVisible());
-            }
-         }
-      }
-
-      @Override
-      public void mouseEntered(MouseEvent e) {
-         // Nothing to do
-      }
-
-      @Override
-      public void mouseExited(MouseEvent e) {
-         // Nothing to do
-      }
-
-      @Override
-      public void mousePressed(MouseEvent e) {
-         if (e.getButton() == MouseEvent.BUTTON3) {
-            // Right button - Do nothing
-         }
-      }
-
-      @Override
-      public void mouseReleased(MouseEvent e) {
-         // Nothing to do
       }
    }
 
