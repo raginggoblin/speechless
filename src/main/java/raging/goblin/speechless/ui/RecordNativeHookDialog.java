@@ -54,7 +54,7 @@ public class RecordNativeHookDialog extends JDialog {
 
    private boolean okButtonPressed = false;
    private List<Integer> nativeHookKeyCodes = new ArrayList<>();
-   private boolean recording = true;
+   private boolean recording = false;
    private JLabel nativeKeyCodesLabel;
 
    public RecordNativeHookDialog(JFrame parent) {
