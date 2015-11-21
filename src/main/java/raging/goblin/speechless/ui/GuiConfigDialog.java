@@ -49,6 +49,8 @@ public class GuiConfigDialog extends JDialog {
 
    @Getter
    private boolean okPressed;
+   @Getter
+   private boolean settingsChanged;
    private int[] nativeHookKeyCodes = PROPERTIES.getNativeHookKeyCodes();
 
    private JCheckBox chckbxSplashScreenEnabled;
@@ -153,6 +155,7 @@ public class GuiConfigDialog extends JDialog {
 
       JButton btnOk = new JButton(MESSAGES.get("ok"));
       btnOk.addActionListener(e -> {
+         checkSettingsChanged();
          saveConfiguration();
          okPressed = true;
          setVisible(false);
@@ -166,6 +169,10 @@ public class GuiConfigDialog extends JDialog {
       PROPERTIES.setStartMinimized(chckbxStartMinimized.isSelected());
       PROPERTIES.setNativeHookEnabled(nativeHookKeyCodes.length > 0);
       PROPERTIES.setNativeHookKeyCodes(nativeHookKeyCodes);
+   }
+
+   private void checkSettingsChanged() {
+      settingsChanged = !Arrays.equals(PROPERTIES.getNativeHookKeyCodes(), nativeHookKeyCodes);
    }
 
    private String getNativeHookText(int[] nativeHookKeyCodes) {

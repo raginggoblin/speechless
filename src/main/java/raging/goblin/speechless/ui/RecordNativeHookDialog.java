@@ -39,13 +39,13 @@ import org.jnativehook.GlobalScreen;
 import org.jnativehook.keyboard.NativeKeyEvent;
 import org.jnativehook.keyboard.NativeKeyListener;
 
-import raging.goblin.speechless.Messages;
-import raging.goblin.speechless.UIProperties;
-
 import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
+
+import raging.goblin.speechless.Messages;
+import raging.goblin.speechless.UIProperties;
 
 public class RecordNativeHookDialog extends JDialog {
 
@@ -75,12 +75,13 @@ public class RecordNativeHookDialog extends JDialog {
 
       JPanel actionPanel = new JPanel();
       getContentPane().add(actionPanel, BorderLayout.SOUTH);
-      actionPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow"),
-            FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("max(40dlu;default)"), FormFactory.RELATED_GAP_COLSPEC,
-            FormFactory.DEFAULT_COLSPEC, FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("max(40dlu;default)"),
-            FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("max(5dlu;default)"), }, new RowSpec[] {
-            FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
-            FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("max(5dlu;default)"), }));
+      actionPanel.setLayout(new FormLayout(
+            new ColumnSpec[] { ColumnSpec.decode("default:grow"), FormFactory.RELATED_GAP_COLSPEC,
+                  ColumnSpec.decode("max(40dlu;default)"), FormFactory.RELATED_GAP_COLSPEC, FormFactory.DEFAULT_COLSPEC,
+                  FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("max(40dlu;default)"),
+                  FormFactory.RELATED_GAP_COLSPEC, ColumnSpec.decode("max(5dlu;default)"), },
+            new RowSpec[] { FormFactory.DEFAULT_ROWSPEC, FormFactory.RELATED_GAP_ROWSPEC, FormFactory.DEFAULT_ROWSPEC,
+                  FormFactory.RELATED_GAP_ROWSPEC, RowSpec.decode("max(5dlu;default)"), }));
 
       JButton btnCancel = new JButton(MESSAGES.get("cancel"));
       btnCancel.addActionListener(new ActionListener() {
@@ -102,8 +103,8 @@ public class RecordNativeHookDialog extends JDialog {
       });
       actionPanel.add(btnOk, "7, 3, 2, 1");
 
-      nativeKeyCodesLabel = new JLabel(nativeHookKeyCodes.stream().map(kc -> NativeKeyEvent.getKeyText(kc))
-            .collect(Collectors.joining(", ")));
+      nativeKeyCodesLabel = new JLabel(
+            nativeHookKeyCodes.stream().map(kc -> NativeKeyEvent.getKeyText(kc)).collect(Collectors.joining(", ")));
       nativeKeyCodesLabel.setHorizontalAlignment(SwingConstants.CENTER);
       add(nativeKeyCodesLabel, BorderLayout.CENTER);
    }
