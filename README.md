@@ -1,8 +1,10 @@
-# Speechless
-MaryTTS frontend
+# SpeechLess
+MaryTTS frontend with batteries included.
+
+![SpeechLess main window](images/SpeechLessScreenshotMainWindow.png?raw=true)
 
 #1. Build
-Clone marytts from https://github.com/marytts/marytts and run mvn install
+Clone marytts from [https://github.com/marytts/marytts](https://github.com/marytts/marytts) and run mvn install
 
 Install voices to local maven repo:
 * mvn install:install-file -DgroupId=de.dfki.mary -DartifactId=voice-cmu-slt-hsmm -Dversion=5.1.2 -Dpackaging=jar -Dfile=lib/voice-cmu-slt-hsmm-5.1.2.jar
@@ -12,3 +14,6 @@ Install voices to local maven repo:
 * mvn install:install-file -DgroupId=de.dfki.mary -DartifactId=voice-dfki-poppy-hsmm -Dversion=5.1 -Dpackaging=jar -Dfile=lib/voice-dfki-poppy-hsmm-5.1.jar
 
 Follow instructions from https://projectlombok.org/ to setup IDE.
+
+#2. Usage
+Download the latest release from [https://github.com/raginggoblin/speechless/releases](https://github.com/raginggoblin/speechless/releases) and run it with: `java -jar SpeechLess.one-jar.jar`  
