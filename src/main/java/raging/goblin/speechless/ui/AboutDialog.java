@@ -22,10 +22,11 @@ package raging.goblin.speechless.ui;
 import java.awt.BorderLayout;
 import java.awt.Frame;
 
-import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import raging.goblin.speechless.Messages;
 
@@ -43,12 +44,23 @@ public class AboutDialog extends JDialog {
 
       JPanel topPanel = new JPanel();
       getContentPane().add(topPanel, BorderLayout.NORTH);
-      JLabel iconLabel = new JLabel(new ImageIcon(AboutDialog.class.getResource("/icons/sound.png")));
+      JLabel iconLabel = new JLabel(Icon.getIcon("/icons/sound.png"));
       topPanel.add(iconLabel);
       topPanel.add(new JLabel(MESSAGES.get("about_title")));
 
       JPanel centerPanel = new JPanel();
       getContentPane().add(centerPanel, BorderLayout.CENTER);
       centerPanel.add(new JLabel(MESSAGES.get("about_text")));
+   }
+
+   public static void main(String[] args) {
+      try {
+         UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+         new AboutDialog(null).setVisible(true);
+      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+            | UnsupportedLookAndFeelException e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      }
    }
 }
