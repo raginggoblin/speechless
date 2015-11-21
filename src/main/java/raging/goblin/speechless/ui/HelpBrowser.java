@@ -8,6 +8,8 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
@@ -63,7 +65,21 @@ public final class HelpBrowser extends JFrame {
       getContentPane().add(scrollPane);
 
       JButton homeButton = new JButton(Icon.getIcon("/icons/house.png"));
-      homeButton.addActionListener(a -> helpPane.setCaretPosition(0));
+      homeButton.addActionListener(a -> {
+         helpPane.setCaretPosition(0);
+         scrollPane.getVerticalScrollBar().setValue(0);
+      });
       getContentPane().add(homeButton, BorderLayout.SOUTH);
+   }
+
+   public static void main(String[] args) {
+      try {
+         UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+            | UnsupportedLookAndFeelException e) {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      }
+      new HelpBrowser().setVisible(true);
    }
 }
