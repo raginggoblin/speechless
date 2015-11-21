@@ -25,8 +25,6 @@ import java.awt.Frame;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 import raging.goblin.speechless.Messages;
 
@@ -39,7 +37,7 @@ public class AboutDialog extends JDialog {
       setDefaultCloseOperation(DISPOSE_ON_CLOSE);
       setTitle(MESSAGES.get("client_window_title"));
 
-      setSize(550, 250);
+      setSize(550, 400);
       ScreenPositioner.centerOnScreen(this);
 
       JPanel topPanel = new JPanel();
@@ -51,16 +49,5 @@ public class AboutDialog extends JDialog {
       JPanel centerPanel = new JPanel();
       getContentPane().add(centerPanel, BorderLayout.CENTER);
       centerPanel.add(new JLabel(MESSAGES.get("about_text")));
-   }
-
-   public static void main(String[] args) {
-      try {
-         UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-         new AboutDialog(null).setVisible(true);
-      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-            | UnsupportedLookAndFeelException e) {
-         // TODO Auto-generated catch block
-         e.printStackTrace();
-      }
    }
 }
