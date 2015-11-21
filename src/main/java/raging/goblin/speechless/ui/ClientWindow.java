@@ -320,10 +320,6 @@ public class ClientWindow extends JFrame implements EndOfSpeechListener {
       configureGuiItem.addActionListener(a -> {
          GuiConfigDialog dialog = new GuiConfigDialog(ClientWindow.this);
          dialog.setVisible(true);
-         if (dialog.isOkPressed()) {
-            JOptionPane.showMessageDialog(ClientWindow.this, MESSAGES.get("restart_message"),
-                  MESSAGES.get("restart_title"), JOptionPane.INFORMATION_MESSAGE);
-         }
       });
       configureMenu.add(configureGuiItem);
 
