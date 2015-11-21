@@ -29,6 +29,9 @@ import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import org.jnativehook.keyboard.NativeKeyEvent;
 
@@ -60,7 +63,7 @@ public class WelcomeScreen extends JFrame {
       String nativeHookKeysString = Arrays.stream(nativeHookKeyCodes).mapToObj(kc -> NativeKeyEvent.getKeyText(kc))
             .collect(Collectors.joining(", "));
       String welcomeMessage = String.format(MESSAGES.get("welcome"), nativeHookKeysString);
-      JLabel welcomeLabel = new JLabel(welcomeMessage);
+      JLabel welcomeLabel = new JLabel(welcomeMessage, SwingConstants.CENTER);
       centerPanel.add(welcomeLabel);
 
       JPanel checkBoxPanel = new JPanel();
