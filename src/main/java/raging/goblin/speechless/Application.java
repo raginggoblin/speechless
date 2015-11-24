@@ -140,7 +140,7 @@ public class Application {
          try {
             GlobalScreen.unregisterNativeHook();
             speeker.stop();
-            log.info("Speechless shutdown complete");
+            log.info("SpeechLess shutdown complete");
          } catch (NativeHookException ex) {
             log.warn("Unable to unregister native hook");
          }
