@@ -4,7 +4,7 @@ MaryTTS frontend with batteries included.
 ![SpeechLess main window](images/SpeechLessScreenshotMainWindow.png?raw=true)
 
 #1. Build
-Clone marytts from [https://github.com/marytts/marytts](https://github.com/marytts/marytts) and run mvn install
+Download marytts sources from [https://github.com/marytts/marytts/archive/v5.1.2.zip](https://github.com/marytts/marytts/archive/v5.1.2.zip) and run mvn install
 
 Install voices to local maven repo:
 * mvn install:install-file -DgroupId=de.dfki.mary -DartifactId=voice-cmu-slt-hsmm -Dversion=5.1.2 -Dpackaging=jar -Dfile=lib/voice-cmu-slt-hsmm-5.1.2.jar
