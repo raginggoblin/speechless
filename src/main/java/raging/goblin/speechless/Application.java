@@ -15,8 +15,6 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with SpeechLess.  If not, see <http://www.gnu.org/licenses/>.
- 
- aap
  */
 
 package raging.goblin.speechless;

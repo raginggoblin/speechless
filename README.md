@@ -1,9 +1,6 @@
 # SpeechLess
 MaryTTS frontend with batteries included.
 
-aap
-
-
 ![SpeechLess main window](images/SpeechLessScreenshotMainWindow.png?raw=true)
 
 #1. Build
