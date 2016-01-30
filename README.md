@@ -1,7 +1,7 @@
 # SpeechLess
 SpeechLess is now TypeTalk. This repository only serves historical purposes. 
-![TypeTalk website](http://typetalk.github.io/TypeTalk)
-![TypeTalk at github](https://github.com/TypeTalk/TypeTalk)
+* ![TypeTalk website](http://typetalk.github.io/TypeTalk)
+* ![TypeTalk at github](https://github.com/TypeTalk/TypeTalk)
 
 #1. Build
 Download marytts sources from [https://github.com/marytts/marytts/archive/v5.1.2.zip](https://github.com/marytts/marytts/archive/v5.1.2.zip) and run mvn install
